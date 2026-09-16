@@ -1,0 +1,154 @@
+{
+  "$comment": "Fill in url/pageUrl/source/license/credit for each slot, then run: node scripts/ingest-photos.mjs",
+  "guidance": {
+    "look": "Authentic, modern creators at work. Diverse. Indian creators strongly preferred for the pilot audience.",
+    "avoid": "Generic corporate stock, staged handshakes, headset call-centre imagery, white-background studio shots.",
+    "licensing": "Only sources whose licence permits commercial use without attribution (e.g. Pexels, Unsplash, Pixabay). Record the licence anyway."
+  },
+  "photos": [
+    {
+      "id": "reel-01",
+      "width": 540,
+      "height": 960,
+      "kind": "Reel",
+      "brief": "Vertical 9:16 photo of a creator filming themselves on a phone",
+      "url": "",
+      "pageUrl": "",
+      "source": "",
+      "license": "",
+      "credit": ""
+    },
+    {
+      "id": "video-01",
+      "width": 960,
+      "height": 540,
+      "kind": "Video",
+      "brief": "16:9 photo of a creator editing footage on a laptop",
+      "url": "",
+      "pageUrl": "",
+      "source": "",
+      "license": "",
+      "credit": ""
+    },
+    {
+      "id": "photo-01",
+      "width": 720,
+      "height": 720,
+      "kind": "Photo",
+      "brief": "Square photo from a real shoot — portrait or product",
+      "url": "",
+      "pageUrl": "",
+      "source": "",
+      "license": "",
+      "credit": ""
+    },
+    {
+      "id": "podcast-01",
+      "width": 720,
+      "height": 720,
+      "kind": "Podcast",
+      "brief": "Square photo of a podcast recording setup",
+      "url": "",
+      "pageUrl": "",
+      "source": "",
+      "license": "",
+      "credit": ""
+    },
+    {
+      "id": "reel-02",
+      "width": 540,
+      "height": 960,
+      "kind": "Reel",
+      "brief": "Vertical 9:16 travel or lifestyle content still",
+      "url": "",
+      "pageUrl": "",
+      "source": "",
+      "license": "",
+      "credit": ""
+    },
+    {
+      "id": "thumbnail-01",
+      "width": 960,
+      "height": 540,
+      "kind": "Thumbnail",
+      "brief": "16:9 grid of real thumbnail artwork",
+      "url": "",
+      "pageUrl": "",
+      "source": "",
+      "license": "",
+      "credit": ""
+    },
+    {
+      "id": "brand-01",
+      "width": 720,
+      "height": 720,
+      "kind": "Brand Kit",
+      "brief": "Square flat-lay of brand assets, logos or a media kit",
+      "url": "",
+      "pageUrl": "",
+      "source": "",
+      "license": "",
+      "credit": ""
+    },
+    {
+      "id": "script-01",
+      "width": 720,
+      "height": 960,
+      "kind": "Script",
+      "brief": "Vertical shot of a script, caption sheet or content plan",
+      "url": "",
+      "pageUrl": "",
+      "source": "",
+      "license": "",
+      "credit": ""
+    },
+    {
+      "id": "reel-03",
+      "width": 540,
+      "height": 960,
+      "kind": "Reel",
+      "brief": "Vertical 9:16 studio or behind-the-scenes still",
+      "url": "",
+      "pageUrl": "",
+      "source": "",
+      "license": "",
+      "credit": ""
+    },
+    {
+      "id": "video-02",
+      "width": 960,
+      "height": 540,
+      "kind": "Video",
+      "brief": "16:9 photo of a shoot in progress",
+      "url": "",
+      "pageUrl": "",
+      "source": "",
+      "license": "",
+      "credit": ""
+    },
+    {
+      "id": "photo-02",
+      "width": 720,
+      "height": 720,
+      "kind": "Photo",
+      "brief": "Square product or brand-content photo",
+      "url": "",
+      "pageUrl": "",
+      "source": "",
+      "license": "",
+      "credit": ""
+    },
+    {
+      "id": "studio-01",
+      "width": 960,
+      "height": 540,
+      "kind": "Podcast",
+      "brief": "16:9 photo of a studio or recording session",
+      "url": "",
+      "pageUrl": "",
+      "source": "",
+      "license": "",
+      "credit": ""
+    }
+  ]
+}

@@ -1,9 +1,29 @@
 {
-  "$comment": "Fill in url/pageUrl/source/license/credit for each slot, then run: node scripts/ingest-photos.mjs",
+  "$comment": "Source of truth for every third-party asset on the landing page. Run: node scripts/ingest-photos.mjs (set FFMPEG=/path/to/ffmpeg for the video).",
   "guidance": {
     "look": "Authentic, modern creators at work. Diverse. Indian creators strongly preferred for the pilot audience.",
     "avoid": "Generic corporate stock, staged handshakes, headset call-centre imagery, white-background studio shots.",
     "licensing": "Only sources whose licence permits commercial use without attribution (e.g. Pexels, Unsplash, Pixabay). Record the licence anyway."
+  },
+  "licenses": {
+    "Pexels License": {
+      "url": "https://www.pexels.com/license/",
+      "summary": "Free to use, including commercially. Modification allowed. Attribution not required. Identifiable people may not be shown in a bad light; no implied endorsement; not for resale as unaltered copies; not for use in a trademark or logo."
+    }
+  },
+  "video": {
+    "id": "hero-creator",
+    "brief": "Slow, dark, creator-at-work footage to sit behind the hero copy at reduced opacity",
+    "url": "https://videos.pexels.com/video-files/7677005/7677005-hd_1920_1080_25fps.mp4",
+    "pageUrl": "https://www.pexels.com/video/woman-video-recording-using-smartphone-7677005/",
+    "source": "Pexels",
+    "license": "Pexels License",
+    "credit": "Ivan S",
+    "creditUrl": "https://www.pexels.com/@ivan-s/",
+    "description": "Young woman using smartphone and ring light for social media recording, neon studio",
+    "width": 1280,
+    "height": 720,
+    "trim": { "start": 1, "end": 11, "crossfade": 1 }
   },
   "photos": [
     {
@@ -12,11 +32,13 @@
       "height": 960,
       "kind": "Reel",
       "brief": "Vertical 9:16 photo of a creator filming themselves on a phone",
-      "url": "",
-      "pageUrl": "",
-      "source": "",
-      "license": "",
-      "credit": ""
+      "url": "https://images.pexels.com/photos/13929353/pexels-photo-13929353.jpeg?auto=compress&cs=tinysrgb&w=1800",
+      "pageUrl": "https://www.pexels.com/photo/woman-fixing-a-smart-phone-on-a-tripod-13929353/",
+      "source": "Pexels",
+      "license": "Pexels License",
+      "credit": "Mizuno K",
+      "creditUrl": "https://www.pexels.com/@mizunokozuki/",
+      "alt": "Creator in a striped top adjusting her phone on a tripod beside a ring light"
     },
     {
       "id": "video-01",
@@ -24,11 +46,13 @@
       "height": 540,
       "kind": "Video",
       "brief": "16:9 photo of a creator editing footage on a laptop",
-      "url": "",
-      "pageUrl": "",
-      "source": "",
-      "license": "",
-      "credit": ""
+      "url": "https://images.pexels.com/photos/13929362/pexels-photo-13929362.jpeg?auto=compress&cs=tinysrgb&w=1800",
+      "pageUrl": "https://www.pexels.com/photo/woman-using-smart-phone-on-tripod-and-a-laptop-computer-13929362/",
+      "source": "Pexels",
+      "license": "Pexels License",
+      "credit": "Mizuno K",
+      "creditUrl": "https://www.pexels.com/@mizunokozuki/",
+      "alt": "Creator at a yellow desk reaching for her phone on a tripod, video edit open on the laptop"
     },
     {
       "id": "photo-01",
@@ -36,11 +60,14 @@
       "height": 720,
       "kind": "Photo",
       "brief": "Square photo from a real shoot — portrait or product",
-      "url": "",
-      "pageUrl": "",
-      "source": "",
-      "license": "",
-      "credit": ""
+      "url": "https://images.pexels.com/photos/34014654/pexels-photo-34014654.jpeg?auto=compress&cs=tinysrgb&w=1800",
+      "pageUrl": "https://www.pexels.com/photo/young-photographer-capturing-the-perfect-shot-34014654/",
+      "source": "Pexels",
+      "license": "Pexels License",
+      "credit": "Sanket Mishra",
+      "creditUrl": "https://www.pexels.com/@sanketgraphy/",
+      "position": "top",
+      "alt": "Smiling young photographer lining up a shot with a mirrorless camera in a dark studio"
     },
     {
       "id": "podcast-01",
@@ -48,11 +75,13 @@
       "height": 720,
       "kind": "Podcast",
       "brief": "Square photo of a podcast recording setup",
-      "url": "",
-      "pageUrl": "",
-      "source": "",
-      "license": "",
-      "credit": ""
+      "url": "https://images.pexels.com/photos/17580425/pexels-photo-17580425.jpeg?auto=compress&cs=tinysrgb&w=1800",
+      "pageUrl": "https://www.pexels.com/photo/smiling-woman-working-with-laptop-and-microphone-17580425/",
+      "source": "Pexels",
+      "license": "Pexels License",
+      "credit": "Alberto Lara",
+      "creditUrl": "https://www.pexels.com/@alberto-lara-25433440/",
+      "alt": "Podcaster in headphones smiling at a boom microphone, audio software open on her laptop"
     },
     {
       "id": "reel-02",
@@ -60,23 +89,27 @@
       "height": 960,
       "kind": "Reel",
       "brief": "Vertical 9:16 travel or lifestyle content still",
-      "url": "",
-      "pageUrl": "",
-      "source": "",
-      "license": "",
-      "credit": ""
+      "url": "https://images.pexels.com/photos/8490673/pexels-photo-8490673.jpeg?auto=compress&cs=tinysrgb&w=1800",
+      "pageUrl": "https://www.pexels.com/photo/a-person-holding-a-camera-with-microphone-8490673/",
+      "source": "Pexels",
+      "license": "Pexels License",
+      "credit": "YEŞ",
+      "creditUrl": "https://www.pexels.com/@yunusemresahinoglu/",
+      "alt": "Travel creator's hand holding a vlogging camera towards a beach at sunset"
     },
     {
       "id": "thumbnail-01",
       "width": 960,
       "height": 540,
       "kind": "Thumbnail",
-      "brief": "16:9 grid of real thumbnail artwork",
-      "url": "",
-      "pageUrl": "",
-      "source": "",
-      "license": "",
-      "credit": ""
+      "brief": "16:9 photo of creators reviewing their shots",
+      "url": "https://images.pexels.com/photos/39190672/pexels-photo-39190672.jpeg?auto=compress&cs=tinysrgb&w=1800",
+      "pageUrl": "https://www.pexels.com/photo/photographers-collaborating-on-a-studio-project-39190672/",
+      "source": "Pexels",
+      "license": "Pexels License",
+      "credit": "Vitaly Gariev",
+      "creditUrl": "https://www.pexels.com/@silverkblack/",
+      "alt": "Two photographers reviewing shots on a laptop in a studio ringed with softboxes"
     },
     {
       "id": "brand-01",
@@ -84,11 +117,13 @@
       "height": 720,
       "kind": "Brand Kit",
       "brief": "Square flat-lay of brand assets, logos or a media kit",
-      "url": "",
-      "pageUrl": "",
-      "source": "",
-      "license": "",
-      "credit": ""
+      "url": "https://images.pexels.com/photos/4011762/pexels-photo-4011762.jpeg?auto=compress&cs=tinysrgb&w=1800",
+      "pageUrl": "https://www.pexels.com/photo/set-of-equipment-for-professional-photography-4011762/",
+      "source": "Pexels",
+      "license": "Pexels License",
+      "credit": "Ricky Esquivel",
+      "creditUrl": "https://www.pexels.com/@rickyesquivel/",
+      "alt": "Overhead flat lay of a creator's kit: cameras, lenses, laptop, microphone and headphones"
     },
     {
       "id": "script-01",
@@ -96,11 +131,13 @@
       "height": 960,
       "kind": "Script",
       "brief": "Vertical shot of a script, caption sheet or content plan",
-      "url": "",
-      "pageUrl": "",
-      "source": "",
-      "license": "",
-      "credit": ""
+      "url": "https://images.pexels.com/photos/6953921/pexels-photo-6953921.jpeg?auto=compress&cs=tinysrgb&w=1800",
+      "pageUrl": "https://www.pexels.com/photo/smiling-woman-writing-in-planner-while-recording-podcast-6953921/",
+      "source": "Pexels",
+      "license": "Pexels License",
+      "credit": "George Milton",
+      "creditUrl": "https://www.pexels.com/@george-milton/",
+      "alt": "Creator writing notes in a planner while recording at a microphone"
     },
     {
       "id": "reel-03",
@@ -108,11 +145,13 @@
       "height": 960,
       "kind": "Reel",
       "brief": "Vertical 9:16 studio or behind-the-scenes still",
-      "url": "",
-      "pageUrl": "",
-      "source": "",
-      "license": "",
-      "credit": ""
+      "url": "https://images.pexels.com/photos/7676494/pexels-photo-7676494.jpeg?auto=compress&cs=tinysrgb&w=1800",
+      "pageUrl": "https://www.pexels.com/photo/behind-the-scenes-of-a-female-content-creator-7676494/",
+      "source": "Pexels",
+      "license": "Pexels License",
+      "credit": "Ivan S",
+      "creditUrl": "https://www.pexels.com/@ivan-s/",
+      "alt": "Creator pointing at her phone camera in a studio lit by neon tubes"
     },
     {
       "id": "video-02",
@@ -120,11 +159,13 @@
       "height": 540,
       "kind": "Video",
       "brief": "16:9 photo of a shoot in progress",
-      "url": "",
-      "pageUrl": "",
-      "source": "",
-      "license": "",
-      "credit": ""
+      "url": "https://images.pexels.com/photos/34037223/pexels-photo-34037223.jpeg?auto=compress&cs=tinysrgb&w=1800",
+      "pageUrl": "https://www.pexels.com/photo/young-videographer-with-camera-stabilizer-outdoors-34037223/",
+      "source": "Pexels",
+      "license": "Pexels License",
+      "credit": "Sanket Mishra",
+      "creditUrl": "https://www.pexels.com/@sanketgraphy/",
+      "alt": "Smiling videographer filming outdoors with a camera on a gimbal"
     },
     {
       "id": "photo-02",
@@ -132,11 +173,14 @@
       "height": 720,
       "kind": "Photo",
       "brief": "Square product or brand-content photo",
-      "url": "",
-      "pageUrl": "",
-      "source": "",
-      "license": "",
-      "credit": ""
+      "url": "https://images.pexels.com/photos/5717971/pexels-photo-5717971.jpeg?auto=compress&cs=tinysrgb&w=1800",
+      "pageUrl": "https://www.pexels.com/photo/a-person-holding-a-camera-5717971/",
+      "source": "Pexels",
+      "license": "Pexels License",
+      "credit": "Kaboompics.com",
+      "creditUrl": "https://www.pexels.com/@karola-g/",
+      "position": "top",
+      "alt": "Creator photographing an orange handbag for a brand shoot"
     },
     {
       "id": "studio-01",
@@ -144,11 +188,13 @@
       "height": 540,
       "kind": "Podcast",
       "brief": "16:9 photo of a studio or recording session",
-      "url": "",
-      "pageUrl": "",
-      "source": "",
-      "license": "",
-      "credit": ""
+      "url": "https://images.pexels.com/photos/21134591/pexels-photo-21134591.jpeg?auto=compress&cs=tinysrgb&w=1800",
+      "pageUrl": "https://www.pexels.com/photo/man-in-tank-top-sitting-next-to-microphone-on-stand-21134591/",
+      "source": "Pexels",
+      "license": "Pexels License",
+      "credit": "Kenneth Surillo",
+      "creditUrl": "https://www.pexels.com/@kenzero14/",
+      "alt": "Podcaster in headphones at a condenser microphone in a warmly lit home studio"
     }
   ]
 }

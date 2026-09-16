@@ -1,11 +1,13 @@
 /**
- * Generates the landing page's media assets.
+ * Fallback generator for the landing page's media assets.
  *
- * Everything here is produced from scratch — layered gradient meshes, grain and
- * original vector scenes — so every asset is our own work with no third-party
- * licence attached. The build environment has no network access to stock
- * libraries, and shipping fake photography would be worse than shipping honest
- * original artwork.
+ * The page now ships real creator photography and footage, imported by
+ * `scripts/ingest-photos.mjs` from `scripts/photo-manifest.json`. This script
+ * is the earlier alternative from when no stock library was reachable:
+ * everything it makes is produced from scratch — layered gradient meshes, grain
+ * and original vector scenes — so it carries no third-party licence. Its output
+ * is no longer committed; keep it for a licence-free rebuild if one is ever
+ * needed (point `src/lib/media.ts` back at `/media/<id>.webp`).
  *
  * Run:  node scripts/generate-media.mjs
  * Out:  public/media/*.webp  and  public/media/hero-loop.webm

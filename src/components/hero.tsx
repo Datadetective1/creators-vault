@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { HeroBackdrop } from "@/components/hero-backdrop";
 import { MediaTile } from "@/components/media-tile";
 import { Reveal } from "@/components/reveal";
 import { HERO_TILES } from "@/lib/media";
@@ -7,9 +8,12 @@ import { HERO_TILES } from "@/lib/media";
 /**
  * Split hero: the promise on the left, the creator's own content on the right.
  *
- * The backdrop is a 6-second VP8 loop (≈130 KB) that drifts slowly. It is
- * muted, playsInline and poster-backed, so a browser that blocks autoplay — or
- * a user on reduced motion — simply sees the poster frame and loses nothing.
+ * The backdrop is real footage of a creator recording to her phone in a
+ * neon-lit studio — a 9-second seamless loop, 720p, ≈620 KB as VP9 with an
+ * H.264 fallback, no audio track at all. It is muted, playsInline and
+ * poster-backed, so a browser that blocks autoplay simply shows the poster;
+ * a viewer who prefers reduced motion gets the loop held on that same frame
+ * (see HeroBackdrop).
  */
 export function Hero({ signedIn }: { signedIn: boolean }) {
   return (
@@ -102,30 +106,6 @@ function TrustPoint({ children }: { children: React.ReactNode }) {
       </svg>
       {children}
     </li>
-  );
-}
-
-/** Slow-drifting gradient video behind the whole hero. */
-function HeroBackdrop() {
-  return (
-    <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
-      <video
-        className="h-full w-full object-cover opacity-60"
-        poster="/media/hero-poster.webp"
-        autoPlay
-        muted
-        loop
-        playsInline
-        preload="metadata"
-        // A background loop is decoration: keep it out of the a11y tree and off
-        // the tab order.
-        tabIndex={-1}
-        aria-hidden="true"
-      >
-        <source src="/media/hero-loop.webm" type="video/webm" />
-      </video>
-      <div className="absolute inset-0 bg-gradient-to-b from-ink-900/45 via-ink-900/65 to-ink-900" />
-    </div>
   );
 }
 

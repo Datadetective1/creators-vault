@@ -135,10 +135,14 @@ test.describe("the redesign's media and motion", () => {
     await page.goto("/");
     const video = page.locator("video").first();
 
-    await expect(video).toHaveAttribute("poster", /hero-poster\.webp$/);
+    await expect(video).toHaveAttribute("poster", /hero-creator-poster\.webp$/);
     await expect(video).toHaveJSProperty("muted", true);
     await expect(video).toHaveJSProperty("loop", true);
     await expect(video).toHaveJSProperty("playsInline", true);
+    // Real footage ships as VP9 with an H.264 fallback, so Safari gets a
+    // playable source too instead of a frozen poster.
+    await expect(video.locator('source[type="video/webm"]')).toHaveAttribute("src", /hero-creator\.webm$/);
+    await expect(video.locator('source[type="video/mp4"]')).toHaveAttribute("src", /hero-creator\.mp4$/);
     // `muted` is what guarantees silence — a muted element keeps volume at 1.
     // Also assert the page ships no audio element at all.
     expect(await page.locator("audio").count()).toBe(0);
@@ -195,6 +199,12 @@ test.describe("the redesign's media and motion", () => {
           .filter((el) => parseFloat(getComputedStyle(el).opacity) < 0.99).length,
       );
       expect(stuck).toBe(0);
+
+      // The hero footage is a person moving; under reduced motion it must hold
+      // on its first frame rather than loop.
+      const video = page.locator("video").first();
+      await expect(video).toHaveJSProperty("paused", true);
+      await expect(video).toHaveJSProperty("autoplay", false);
     } finally {
       await context.close();
     }

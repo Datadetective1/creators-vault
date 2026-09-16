@@ -17,7 +17,7 @@ test("landing page shows the full story", async ({ page }) => {
   for (const heading of [
     "Most creators have exactly one copy of their best work.",
     "Three steps. No technical setup.",
-    "Everything your content business runs on.",
+    "All of this can live in your vault.",
     "Start free. Upgrade when you outgrow it.",
     "Questions creators ask first.",
   ]) {
@@ -128,6 +128,111 @@ test.describe("?next= cannot redirect off-site after login", () => {
     await page.goto("/login?next=/dashboard/vault%3Ftab%3Drecent");
     await expect(page.locator('input[name="next"]')).toHaveValue("/dashboard/vault?tab=recent");
   });
+});
+
+test.describe("the redesign's media and motion", () => {
+  test("hero ships a muted, looping, inline background video with a poster", async ({ page }) => {
+    await page.goto("/");
+    const video = page.locator("video").first();
+
+    await expect(video).toHaveAttribute("poster", /hero-poster\.webp$/);
+    await expect(video).toHaveJSProperty("muted", true);
+    await expect(video).toHaveJSProperty("loop", true);
+    await expect(video).toHaveJSProperty("playsInline", true);
+    // `muted` is what guarantees silence — a muted element keeps volume at 1.
+    // Also assert the page ships no audio element at all.
+    expect(await page.locator("audio").count()).toBe(0);
+  });
+
+  test("content tiles render as real images, lazily below the fold", async ({ page }) => {
+    await page.goto("/");
+
+    const tiles = page.locator("figure.media-tile img");
+    expect(await tiles.count()).toBeGreaterThan(8);
+
+    // Hero tiles are eager; the content wall must not be.
+    const lazy = page.locator('figure.media-tile img[loading="lazy"]');
+    expect(await lazy.count()).toBeGreaterThan(5);
+  });
+
+  test("every section becomes visible when scrolled", async ({ page }) => {
+    // The reveal animation starts at opacity 0. Playwright's visibility check
+    // ignores opacity, so this asserts it explicitly — a stuck observer would
+    // otherwise ship a page that looks blank to a real visitor.
+    await page.goto("/");
+    // The page uses scroll-behavior: smooth, which makes programmatic scrolling
+    // animate and never settle inside one task. Disable it for the sweep.
+    await page.addStyleTag({ content: "html{scroll-behavior:auto !important}" });
+
+    // Re-read the height each step: lazy images keep growing the page, so a
+    // fixed-length loop stops before the footer.
+    for (let y = 0, i = 0; i < 400; i += 1, y += 320) {
+      const height = await page.evaluate(() => document.body.scrollHeight);
+      if (y > height) break;
+      await page.evaluate((v) => window.scrollTo(0, v), y);
+      await page.waitForTimeout(70);
+    }
+    await page.waitForTimeout(1500);
+
+    const stuck = await page.evaluate(() =>
+      [...document.querySelectorAll(".reveal")]
+        .filter((el) => (el as HTMLElement).checkVisibility())
+        .filter((el) => parseFloat(getComputedStyle(el).opacity) < 0.99).length,
+    );
+    expect(stuck).toBe(0);
+  });
+
+  test("reduced motion shows everything immediately, with no scrolling", async ({ browser }) => {
+    const context = await browser.newContext({ reducedMotion: "reduce" });
+    const page = await context.newPage();
+    try {
+      await page.goto("/");
+      await page.waitForTimeout(600);
+
+      const stuck = await page.evaluate(() =>
+        [...document.querySelectorAll(".reveal")]
+          .filter((el) => (el as HTMLElement).checkVisibility())
+          .filter((el) => parseFloat(getComputedStyle(el).opacity) < 0.99).length,
+      );
+      expect(stuck).toBe(0);
+    } finally {
+      await context.close();
+    }
+  });
+
+  test("content stays readable even if the reveal styles never un-hide", async ({ page }) => {
+    // Simulates the bundle failing to run: without data-js the hidden state
+    // must not apply at all.
+    await page.goto("/");
+    // Kill transitions first, so removing the attribute takes effect instantly
+    // instead of leaving elements mid-fade when the assertion runs.
+    await page.addStyleTag({ content: "*{transition:none !important}" });
+    await page.waitForTimeout(200);
+    await page.evaluate(() => document.documentElement.removeAttribute("data-js"));
+    await page.waitForTimeout(200);
+
+    const stuck = await page.evaluate(() =>
+      [...document.querySelectorAll(".reveal")]
+        .filter((el) => (el as HTMLElement).checkVisibility())
+        .filter((el) => parseFloat(getComputedStyle(el).opacity) < 0.99).length,
+    );
+    expect(stuck).toBe(0);
+  });
+});
+
+test("phone viewport shows media above the fold, not just text", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+  await page.waitForTimeout(400);
+
+  // At least one content tile must intersect the first screen.
+  const aboveFold = await page.evaluate(() =>
+    [...document.querySelectorAll("figure.media-tile")].filter((el) => {
+      const r = el.getBoundingClientRect();
+      return r.top < window.innerHeight && r.bottom > 0;
+    }).length,
+  );
+  expect(aboveFold).toBeGreaterThan(0);
 });
 
 test("layout holds up on a phone viewport", async ({ page }) => {

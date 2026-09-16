@@ -1,24 +1,32 @@
 import Link from "next/link";
 
+import { ContentWall } from "@/components/content-wall";
+import { Hero } from "@/components/hero";
+import { HowItWorks } from "@/components/how-it-works";
+import { MediaTile } from "@/components/media-tile";
+import { Reveal } from "@/components/reveal";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteNav } from "@/components/site-nav";
-import { getCurrentUser } from "@/lib/supabase/server";
+import { CONTENT_WALL } from "@/lib/media";
 import { PLAN_ORDER, PLANS } from "@/lib/plans";
+import { getCurrentUser } from "@/lib/supabase/server";
 
 export default async function HomePage() {
   const user = await getCurrentUser();
+  const signedIn = Boolean(user);
 
   return (
     <>
-      <SiteNav signedIn={Boolean(user)} />
+      <SiteNav signedIn={signedIn} />
       <main id="main">
-        <Hero signedIn={Boolean(user)} />
+        <Hero signedIn={signedIn} />
         <WhySection />
         <HowItWorks />
-        <WhatYouCanStore />
+        <ContentWall />
+        <TrustSection />
         <Pricing />
         <Faq />
-        <FinalCta />
+        <FinalCta signedIn={signedIn} />
       </main>
       <SiteFooter />
     </>
@@ -26,110 +34,70 @@ export default async function HomePage() {
 }
 
 /* -------------------------------------------------------------------------- */
-/* 1. Hero                                                                    */
-/* -------------------------------------------------------------------------- */
-
-function Hero({ signedIn }: { signedIn: boolean }) {
-  return (
-    <section className="hero-glow relative overflow-hidden border-b border-ink-800">
-      <div className="container-page relative py-20 sm:py-28">
-        <div className="mx-auto max-w-3xl text-center">
-          <p className="eyebrow">Early access for creators</p>
-
-          <h1 className="mx-auto mt-5 max-w-3xl text-balance text-[2rem] font-semibold leading-[1.14] tracking-tight text-cream-50 sm:text-5xl lg:text-[3.5rem]">
-            Your content is your business.{" "}
-            <span className="text-gold-400">Protect the work behind your brand.</span>
-          </h1>
-
-          <p className="mx-auto mt-6 max-w-xl text-balance text-base leading-relaxed text-cream-300 sm:text-lg">
-            Store an independent copy of your most valuable videos, photos and creator assets.
-            Access them whenever you need them, even if something happens to your social account.
-          </p>
-
-          <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Link
-              href={signedIn ? "/dashboard" : "/signup"}
-              className="btn-primary w-full px-7 py-3 text-base sm:w-auto"
-            >
-              {signedIn ? "Go to my vault" : "Protect My Content"}
-            </Link>
-            <Link
-              href="#how-it-works"
-              className="btn-secondary w-full px-7 py-3 text-base sm:w-auto"
-            >
-              See how it works
-            </Link>
-          </div>
-
-          <p className="mt-5 text-sm text-muted">
-            Start free with 5&nbsp;GB. No card required to try it.
-          </p>
-        </div>
-
-        <div className="mx-auto mt-16 grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-3">
-          <TrustStat value="Private" label="by default — only you can open your files" />
-          <TrustStat value="Any device" label="upload from phone or desktop" />
-          <TrustStat value="Yours" label="download everything, any time" />
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function TrustStat({ value, label }: { value: string; label: string }) {
-  return (
-    <div className="rounded-2xl border border-ink-700 bg-ink-850/70 px-5 py-4 text-center">
-      <p className="text-base font-semibold text-gold-400">{value}</p>
-      <p className="mt-1 text-sm leading-snug text-muted">{label}</p>
-    </div>
-  );
-}
-
-/* -------------------------------------------------------------------------- */
-/* 2. Why creators need an independent copy                                   */
+/* Why an independent copy                                                    */
 /* -------------------------------------------------------------------------- */
 
 const REASONS = [
   {
     title: "Accounts can be lost",
-    body: "Accounts get hacked, locked or recovered slowly. If your only copy lives inside an app you do not control, losing access means losing your archive too.",
+    body: "Hacked, locked, or recovered slowly. If your only copy lives inside an app you do not control, losing access loses the archive too.",
   },
   {
     title: "Files get deleted by accident",
-    body: "A cleared phone, a wiped SD card, a wrong tap during a clean-up. Original footage is usually the first thing to disappear and the hardest to recreate.",
+    body: "A cleared phone, a wiped card, one wrong tap. Originals are the first thing to go and the hardest to recreate.",
   },
   {
     title: "Devices break and get stolen",
-    body: "Phones and laptops fail. If the raw files only ever existed in one place, a single failure takes years of work with it.",
+    body: "Phones and laptops fail. If the raw files existed in one place, one failure takes years of work with them.",
   },
   {
-    title: "Your work outlives any one platform",
-    body: "Apps change, features get removed, audiences move. Keeping your own copy means your catalogue belongs to your business, not to a platform.",
+    title: "Your work outlives any platform",
+    body: "Apps change, features disappear, audiences move. Your own copy belongs to your business.",
   },
 ];
 
 function WhySection() {
   return (
-    <section className="border-b border-ink-800 py-20 sm:py-24">
+    <section className="border-t border-ink-800/80 py-20 sm:py-28">
       <div className="container-page">
-        <div className="max-w-2xl">
-          <p className="eyebrow">Why it matters</p>
-          <h2 className="section-heading mt-3">
-            Most creators have exactly one copy of their best work.
-          </h2>
-          <p className="prose-muted mt-4">
-            The footage, photos and files you have built your audience on are business assets. They
-            deserve to be stored somewhere you control.
-          </p>
-        </div>
+        <div className="grid gap-12 lg:grid-cols-[1fr_1.05fr] lg:items-center lg:gap-16">
+          <Reveal>
+            <div>
+              <p className="eyebrow">Why it matters</p>
+              <h2 className="section-heading mt-3">
+                Most creators have exactly one copy of their best work.
+              </h2>
+              <p className="prose-muted mt-4">
+                The footage, photos and files you built an audience on are business assets. They
+                belong somewhere you control.
+              </p>
 
-        <div className="mt-12 grid gap-5 sm:grid-cols-2">
-          {REASONS.map((reason) => (
-            <div key={reason.title} className="card">
-              <h3 className="text-lg font-semibold text-cream-50">{reason.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-muted">{reason.body}</p>
+              <dl className="mt-8 grid gap-x-6 gap-y-6 sm:grid-cols-2">
+                {REASONS.map((reason) => (
+                  <div key={reason.title}>
+                    <dt className="flex items-center gap-2 text-sm font-semibold text-cream-50">
+                      <span className="h-1.5 w-1.5 rounded-full bg-gold-400" aria-hidden="true" />
+                      {reason.title}
+                    </dt>
+                    <dd className="mt-1.5 text-sm leading-relaxed text-muted">{reason.body}</dd>
+                  </div>
+                ))}
+              </dl>
             </div>
-          ))}
+          </Reveal>
+
+          <Reveal delay={90}>
+            <div className="grid grid-cols-2 gap-3 sm:gap-4">
+              <div className="space-y-3 sm:space-y-4">
+                <MediaTile item={CONTENT_WALL[4]!} sizes="(max-width:1024px) 45vw, 260px" />
+                <MediaTile item={CONTENT_WALL[6]!} sizes="(max-width:1024px) 45vw, 260px" />
+              </div>
+              <div className="space-y-3 pt-8 sm:space-y-4">
+                <MediaTile item={CONTENT_WALL[3]!} sizes="(max-width:1024px) 45vw, 260px" />
+                <MediaTile item={CONTENT_WALL[8]!} sizes="(max-width:1024px) 45vw, 260px" />
+              </div>
+            </div>
+          </Reveal>
         </div>
       </div>
     </section>
@@ -137,90 +105,42 @@ function WhySection() {
 }
 
 /* -------------------------------------------------------------------------- */
-/* 3. How it works                                                            */
+/* Trust                                                                      */
 /* -------------------------------------------------------------------------- */
 
-const STEPS = [
+const TRUST = [
   {
-    step: "01",
-    title: "Create your account",
-    body: "Sign up with your email and confirm it. Your vault is ready in under a minute.",
+    title: "Private by default",
+    body: "Your vault is yours alone. No other user can list, open or download your files.",
+    icon: "lock" as const,
   },
   {
-    step: "02",
-    title: "Upload what matters most",
-    body: "Choose the videos, photos, audio and documents worth protecting, and upload them straight from your phone or computer.",
+    title: "Yours to download",
+    body: "Every file comes back out whenever you want it, in the format you put in.",
+    icon: "download" as const,
   },
   {
-    step: "03",
-    title: "Get it back whenever you need it",
-    body: "Everything stays private and organised in your vault. Download any file, any time, or delete it for good when you want.",
+    title: "You control what is stored",
+    body: "Upload what matters, delete what does not. Nothing is kept without you choosing it.",
+    icon: "sliders" as const,
   },
 ];
 
-function HowItWorks() {
+function TrustSection() {
   return (
-    <section id="how-it-works" className="scroll-mt-20 border-b border-ink-800 py-20 sm:py-24">
+    <section className="border-t border-ink-800/80 py-16 sm:py-20">
       <div className="container-page">
-        <div className="max-w-2xl">
-          <p className="eyebrow">How it works</p>
-          <h2 className="section-heading mt-3">Three steps. No technical setup.</h2>
-          <p className="prose-muted mt-4">
-            You choose what to protect and upload it yourself. Creator Vault does not connect to
-            Instagram, YouTube or TikTok, and never posts anything anywhere.
-          </p>
-        </div>
-
-        <ol className="mt-12 grid gap-5 md:grid-cols-3">
-          {STEPS.map((item) => (
-            <li key={item.step} className="card relative">
-              <span className="text-sm font-semibold tracking-widest text-gold-400">
-                {item.step}
-              </span>
-              <h3 className="mt-3 text-lg font-semibold text-cream-50">{item.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-muted">{item.body}</p>
-            </li>
-          ))}
-        </ol>
-      </div>
-    </section>
-  );
-}
-
-/* -------------------------------------------------------------------------- */
-/* 4. What can be protected                                                   */
-/* -------------------------------------------------------------------------- */
-
-const ASSET_TYPES = [
-  { title: "Videos", body: "Finished uploads, raw footage, reels and long-form cuts." },
-  { title: "Photos", body: "Shoots, product images, behind-the-scenes and press shots." },
-  { title: "Thumbnails", body: "Cover art and thumbnail files you may need to reuse." },
-  { title: "Audio", body: "Voiceovers, podcast episodes, music beds and interview recordings." },
-  { title: "Documents", body: "Contracts, invoices, brand kits, briefs and rate cards." },
-  { title: "Captions & text", body: "Scripts, subtitle files, caption drafts and content plans." },
-];
-
-function WhatYouCanStore() {
-  return (
-    <section
-      id="what-you-can-store"
-      className="scroll-mt-20 border-b border-ink-800 py-20 sm:py-24"
-    >
-      <div className="container-page">
-        <div className="max-w-2xl">
-          <p className="eyebrow">What you can protect</p>
-          <h2 className="section-heading mt-3">Everything your content business runs on.</h2>
-        </div>
-
-        <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {ASSET_TYPES.map((type) => (
-            <div
-              key={type.title}
-              className="rounded-2xl border border-ink-700 bg-ink-850 p-5 transition-colors hover:border-ink-600"
-            >
-              <h3 className="text-base font-semibold text-cream-50">{type.title}</h3>
-              <p className="mt-1.5 text-sm leading-relaxed text-muted">{type.body}</p>
-            </div>
+        <div className="grid gap-4 sm:grid-cols-3">
+          {TRUST.map((item, index) => (
+            <Reveal key={item.title} delay={index * 80}>
+              <div className="edge-glow h-full rounded-2xl border border-ink-700 bg-ink-850/70 p-6">
+                <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-ink-800 text-gold-400">
+                  <TrustIcon name={item.icon} />
+                </span>
+                <h3 className="mt-4 text-base font-semibold text-cream-50">{item.title}</h3>
+                <p className="mt-1.5 text-sm leading-relaxed text-muted">{item.body}</p>
+              </div>
+            </Reveal>
           ))}
         </div>
       </div>
@@ -228,72 +148,112 @@ function WhatYouCanStore() {
   );
 }
 
+function TrustIcon({ name }: { name: "lock" | "download" | "sliders" }) {
+  const common = { fill: "none", stroke: "currentColor", strokeWidth: 1.7, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
+  if (name === "lock") {
+    return (
+      <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
+        <rect x="5" y="10.5" width="14" height="9.5" rx="2.4" {...common} />
+        <path d="M8.5 10.5V7.75a3.5 3.5 0 017 0v2.75" {...common} />
+      </svg>
+    );
+  }
+  if (name === "download") {
+    return (
+      <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
+        <path d="M12 4v11m0 0l-4-4m4 4l4-4" {...common} />
+        <path d="M5 19h14" {...common} />
+      </svg>
+    );
+  }
+  return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
+      <path d="M5 8h14M5 16h14" {...common} />
+      <circle cx="10" cy="8" r="2.2" {...common} />
+      <circle cx="15" cy="16" r="2.2" {...common} />
+    </svg>
+  );
+}
+
 /* -------------------------------------------------------------------------- */
-/* 5. Pricing                                                                 */
+/* Pricing                                                                    */
 /* -------------------------------------------------------------------------- */
+
+const PLAN_CONTEXT: Record<string, string> = {
+  free: "Protect your most important work",
+  creator: "For active creators",
+  pro: "For creators with growing libraries",
+};
 
 function Pricing() {
   return (
-    <section id="pricing" className="scroll-mt-20 border-b border-ink-800 py-20 sm:py-24">
+    <section id="pricing" className="scroll-mt-24 border-t border-ink-800/80 py-20 sm:py-28">
       <div className="container-page">
-        <div className="mx-auto max-w-2xl text-center">
-          <p className="eyebrow">Pricing</p>
-          <h2 className="section-heading mt-3">Start free. Upgrade when you outgrow it.</h2>
-          <p className="prose-muted mt-4">
-            Pick the amount of storage that fits your catalogue. You can change plan at any time.
-          </p>
-        </div>
+        <Reveal>
+          <div className="mx-auto max-w-2xl text-center">
+            <p className="eyebrow justify-center">Pricing</p>
+            <h2 className="section-heading mt-3">Start free. Upgrade when you outgrow it.</h2>
+            <p className="prose-muted mt-4">Change plan at any time.</p>
+          </div>
+        </Reveal>
 
-        <div className="mx-auto mt-12 grid max-w-5xl gap-5 lg:grid-cols-3">
-          {PLAN_ORDER.map((tier) => {
+        <div className="mx-auto mt-12 grid max-w-5xl gap-4 lg:grid-cols-3">
+          {PLAN_ORDER.map((tier, index) => {
             const plan = PLANS[tier];
             const featured = tier === "creator";
             return (
-              <div
-                key={tier}
-                className={
-                  featured
-                    ? "relative rounded-2xl border-2 border-gold-400 bg-ink-850 p-6"
-                    : "relative rounded-2xl border border-ink-700 bg-ink-850 p-6"
-                }
-              >
-                {featured && (
-                  <span className="absolute -top-3 left-6 rounded-full bg-gold-400 px-3 py-1 text-xs font-semibold text-ink-950">
-                    Most popular
-                  </span>
-                )}
-
-                <h3 className="text-lg font-semibold text-cream-50">{plan.name}</h3>
-                <p className="mt-1 text-sm text-muted">{plan.tagline}</p>
-
-                <p className="mt-5 text-3xl font-semibold tracking-tight text-gold-400">
-                  {plan.storageLabel}
-                </p>
-                <p className="text-sm text-muted">of private storage</p>
-
-                <ul className="mt-6 space-y-2.5">
-                  {plan.features.map((feature) => (
-                    <li key={feature} className="flex gap-2.5 text-sm text-cream-300">
-                      <CheckIcon />
-                      <span>{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-
-                <Link
-                  href="/signup"
-                  className={featured ? "btn-primary mt-7 w-full" : "btn-secondary mt-7 w-full"}
+              <Reveal key={tier} delay={index * 90}>
+                <div
+                  className={`relative h-full overflow-hidden rounded-2xl p-6 transition-transform duration-300 hover:-translate-y-1 ${
+                    featured
+                      ? "border-2 border-gold-400/70 bg-ink-850"
+                      : "border border-ink-700 bg-ink-850/70"
+                  }`}
                 >
-                  {tier === "free" ? "Start free" : `Choose ${plan.name}`}
-                </Link>
-              </div>
+                  {featured && (
+                    <div
+                      aria-hidden="true"
+                      className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full opacity-40 blur-3xl"
+                      style={{ background: "radial-gradient(circle, rgba(255,176,31,0.7), transparent 70%)" }}
+                    />
+                  )}
+
+                  <h3 className="relative text-lg font-semibold text-cream-50">{plan.name}</h3>
+                  <p className="relative mt-1 text-sm text-muted">{PLAN_CONTEXT[tier]}</p>
+
+                  <p
+                    className={`relative mt-6 text-4xl font-semibold tracking-tight ${
+                      featured ? "text-gradient" : "text-cream-50"
+                    }`}
+                  >
+                    {plan.storageLabel}
+                  </p>
+                  <p className="relative text-sm text-muted">of private storage</p>
+
+                  <ul className="relative mt-6 space-y-2.5">
+                    {plan.features.map((feature) => (
+                      <li key={feature} className="flex gap-2.5 text-sm text-cream-300">
+                        <CheckIcon />
+                        <span>{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <Link
+                    href="/signup"
+                    className={featured ? "btn-primary relative mt-7 w-full" : "btn-secondary relative mt-7 w-full"}
+                  >
+                    {tier === "free" ? "Start free" : `Choose ${plan.name}`}
+                  </Link>
+                </div>
+              </Reveal>
             );
           })}
         </div>
 
         <p className="mx-auto mt-8 max-w-2xl text-center text-sm text-muted">
-          Paid plans are billed through Paddle, our payment provider. Pricing for the pilot is
-          confirmed at checkout.
+          Paid plans are billed through Paddle, our payment provider. Pricing is confirmed at
+          checkout.
         </p>
       </div>
     </section>
@@ -302,25 +262,14 @@ function Pricing() {
 
 function CheckIcon() {
   return (
-    <svg
-      viewBox="0 0 20 20"
-      className="mt-0.5 h-4 w-4 shrink-0 text-gold-400"
-      fill="none"
-      aria-hidden="true"
-    >
-      <path
-        d="M4.5 10.5l3.5 3.5 7.5-8"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+    <svg viewBox="0 0 20 20" className="mt-0.5 h-4 w-4 shrink-0 text-gold-400" fill="none" aria-hidden="true">
+      <path d="M4.5 10.5l3.5 3.5 7.5-8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
 
 /* -------------------------------------------------------------------------- */
-/* 6. FAQ                                                                     */
+/* FAQ                                                                        */
 /* -------------------------------------------------------------------------- */
 
 const FAQS = [
@@ -352,27 +301,28 @@ const FAQS = [
 
 function Faq() {
   return (
-    <section id="faq" className="scroll-mt-20 border-b border-ink-800 py-20 sm:py-24">
+    <section id="faq" className="scroll-mt-24 border-t border-ink-800/80 py-20 sm:py-28">
       <div className="container-page">
-        <div className="max-w-2xl">
-          <p className="eyebrow">FAQ</p>
-          <h2 className="section-heading mt-3">Questions creators ask first.</h2>
-        </div>
+        <Reveal>
+          <div className="max-w-2xl">
+            <p className="eyebrow">FAQ</p>
+            <h2 className="section-heading mt-3">Questions creators ask first.</h2>
+          </div>
+        </Reveal>
 
-        <div className="mt-12 grid max-w-4xl gap-3">
-          {FAQS.map((item) => (
-            <details
-              key={item.q}
-              className="group rounded-2xl border border-ink-700 bg-ink-850 px-5 py-4 [&_summary::-webkit-details-marker]:hidden"
-            >
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-base font-medium text-cream-50">
-                {item.q}
-                <span className="shrink-0 text-gold-400 transition-transform group-open:rotate-45">
-                  <PlusIcon />
-                </span>
-              </summary>
-              <p className="mt-3 text-sm leading-relaxed text-muted">{item.a}</p>
-            </details>
+        <div className="mt-10 grid max-w-4xl gap-3">
+          {FAQS.map((item, index) => (
+            <Reveal key={item.q} delay={index * 45}>
+              <details className="group rounded-2xl border border-ink-700 bg-ink-850/70 px-5 py-4 transition-colors hover:border-ink-600 [&_summary::-webkit-details-marker]:hidden">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-base font-medium text-cream-50">
+                  {item.q}
+                  <span className="shrink-0 text-gold-400 transition-transform duration-300 group-open:rotate-45">
+                    <PlusIcon />
+                  </span>
+                </summary>
+                <p className="mt-3 text-sm leading-relaxed text-muted">{item.a}</p>
+              </details>
+            </Reveal>
           ))}
         </div>
       </div>
@@ -389,27 +339,42 @@ function PlusIcon() {
 }
 
 /* -------------------------------------------------------------------------- */
-/* 7. Final CTA                                                               */
+/* Final CTA                                                                  */
 /* -------------------------------------------------------------------------- */
 
-function FinalCta() {
+function FinalCta({ signedIn }: { signedIn: boolean }) {
   return (
-    <section className="py-20 sm:py-24">
+    <section className="pb-20 pt-4 sm:pb-28">
       <div className="container-page">
-        <div className="hero-glow relative overflow-hidden rounded-3xl border border-ink-700 bg-ink-850 px-6 py-14 text-center sm:px-12">
-          <h2 className="section-heading relative">Keep your own copy of your best work.</h2>
-          <p className="prose-muted relative mx-auto mt-4 max-w-xl">
-            Create a free account and upload the files your business would miss most.
-          </p>
-          <div className="relative mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Link href="/signup" className="btn-primary px-7 py-3 text-base">
-              Protect My Content
-            </Link>
-            <Link href="/login" className="btn-secondary px-7 py-3 text-base">
-              I already have an account
-            </Link>
+        <Reveal>
+          <div className="edge-glow relative overflow-hidden rounded-3xl border border-ink-700 bg-ink-850 px-6 py-16 text-center sm:px-12">
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-x-0 -top-24 h-64 opacity-70 blur-3xl"
+              style={{
+                background:
+                  "radial-gradient(ellipse 50% 60% at 50% 50%, rgba(255,61,127,0.35), rgba(123,47,247,0.22) 50%, transparent 72%)",
+              }}
+            />
+            <h2 className="section-heading relative">Keep your own copy of your best work.</h2>
+            <p className="prose-muted relative mx-auto mt-4 max-w-md">
+              Upload what matters. Get it back whenever you need it.
+            </p>
+            <div className="relative mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <Link
+                href={signedIn ? "/dashboard" : "/signup"}
+                className="btn-primary w-full px-7 py-3.5 text-base sm:w-auto"
+              >
+                {signedIn ? "Go to my vault" : "Protect My Content"}
+              </Link>
+              {!signedIn && (
+                <Link href="/login" className="btn-secondary w-full px-7 py-3.5 text-base sm:w-auto">
+                  I already have an account
+                </Link>
+              )}
+            </div>
           </div>
-        </div>
+        </Reveal>
       </div>
     </section>
   );

@@ -19,7 +19,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0b0b0f",
+  themeColor: "#0a0810",
   width: "device-width",
   initialScale: 1,
 };
@@ -27,6 +27,19 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
+      <head>
+        {/*
+          Marks the document as scripting-capable before first paint, which is
+          what gates the scroll-reveal styles. Without this the reveal classes
+          would hide every section with no way to un-hide them if the bundle
+          never runs.
+        */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `document.documentElement.setAttribute("data-js","1")`,
+          }}
+        />
+      </head>
       <body className="min-h-screen antialiased">
         <a
           href="#main"

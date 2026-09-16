@@ -71,7 +71,7 @@ export interface StorageProvider {
    * written, so quota can be charged against what exists rather than what was
    * recorded, and abandoned uploads can be identified and swept.
    */
-  listOwned(userId: string): Promise<StoredObject[]>;
+  listOwned(userId: string, limit?: number): Promise<StoredObject[]>;
 
   /** Remove objects. Must succeed silently when a key is already gone. */
   remove(keys: string[]): Promise<void>;

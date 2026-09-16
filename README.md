@@ -39,9 +39,11 @@ than erroring.
    - `anon` `public` key → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - `service_role` key → `SUPABASE_SERVICE_ROLE_KEY` (server-only, never
      expose this to the browser)
-3. **SQL Editor**, run the migrations in `supabase/migrations/` in order:
-   `0001_init.sql`, then `0002_storage.sql`, then `0003_admin_stats.sql`.
-   This creates the tables, all RLS policies, and the private `vault` bucket.
+3. **SQL Editor**, run every file in `supabase/migrations/` in numeric order:
+   `0001_init.sql`, `0002_storage.sql`, `0003_admin_stats.sql`,
+   `0004_quota_enforcement.sql`, `0005_checkout_sessions.sql`.
+   These create the tables, all RLS policies, the private `vault` bucket, and
+   the triggers that enforce size and quota in the database.
 4. **Authentication → URL Configuration**: set Site URL to your deployed origin
    and add `<origin>/auth/callback` to Redirect URLs.
 
@@ -137,13 +139,28 @@ entirely, so multi-gigabyte video works.
   the service-role key, so nobody can grant themselves a paid plan.
 - **Storage keys are `<user_id>/<uuid>.<ext>`** — never derived from the
   uploaded filename, so path traversal is structurally impossible.
-- **Quota is enforced server-side** before an upload is authorised, and the
-  recorded size is read back from storage rather than trusted from the client.
-  It is charged against what is actually in storage, not just what was
-  recorded, so bytes uploaded without finalising still count. Objects older
-  than an hour with no asset row are swept on the next upload, so a dropped
-  connection does not permanently consume a creator's allowance.
-- **Webhooks are signature-verified** with the raw request body.
+- **Quota and size are enforced in the database, not in the API.** Every
+  browser holds the anon key and the user's JWT, so PostgREST and the Storage
+  API are reachable without going through our routes — application-layer checks
+  alone would be advisory. A trigger on `assets` overwrites `file_size_bytes`
+  from the real stored object and checks the plan limit under a per-user lock
+  (which also closes the race where parallel uploads each read the same
+  pre-insert total); a trigger on `storage.objects` rejects over-quota uploads
+  that skip the metadata table entirely.
+- **The bucket has an allowed MIME type list**, so the type allowlist — notably
+  the deliberate SVG exclusion — holds on the stored bytes and not only on what
+  the client declared. `finalizeUpload` re-validates against the stored object.
+- **Abandoned uploads are swept.** A dropped connection can strand an object
+  with no asset row. Objects older than an hour with no row are cleaned up on
+  the next upload — bounded, chunked, and strictly advisory, so a failed sweep
+  can never block a creator from uploading.
+- **`profiles.email` is not user-writable** (column-level grant), so no future
+  feature can trust it as an identity.
+- **Webhooks are signature-verified** with the raw request body, and the
+  account they apply to is resolved from a server-minted nonce. The browser
+  never sees or supplies a user id, so a correctly-signed Paddle event cannot
+  be steered onto someone else's account. Writes additionally refuse to
+  reassign a subscription that already belongs to a different Paddle customer.
 - **`.env*` is gitignored.** No secret belongs in this repository.
 
 ---
@@ -155,3 +172,18 @@ entirely, so multi-gigabyte video works.
 - Cancellation and payment-method changes are handled through Paddle's own
   emails rather than an in-app portal.
 - E2E coverage is Chromium-only.
+- Paddle's SDK enforces a **5-second** tolerance on the webhook timestamp, so a
+  server with significant clock skew will reject every webhook and entitlement
+  will silently stop syncing. Worth checking first if plans stop updating.
+- Migrations 0004 and 0005 create a trigger on `storage.objects`. The Supabase
+  SQL Editor runs as `postgres` and can do this; if a future hosted change
+  restricts it, the `assets` trigger still enforces quota for every file the
+  app records.
+- Entitlement does not yet check `current_period_end`, so a lost webhook could
+  leave a paid allowance in place longer than it should. There is no
+  `event_id` idempotency guard either, so a delayed retry can overwrite newer
+  state. Both are worth adding before charging at scale.
+- Changing a password does not require re-entering the old one; enable
+  Supabase's reauthentication setting before launch.
+- No Content-Security-Policy header yet (no XSS sink exists today — this is
+  defence in depth).

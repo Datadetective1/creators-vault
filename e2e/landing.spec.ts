@@ -100,12 +100,34 @@ test("paddle webhook refuses unsigned requests", async ({ request }) => {
   expect(response.status()).toBe(400);
 });
 
-test("admin route is not discoverable without configuration", async ({ page }) => {
-  const response = await page.goto("/admin");
-  // Either a 404 (no ADMIN_EMAILS) or a redirect to login — never the stats.
-  expect(page.url()).not.toContain("/admin/stats");
-  if (response) expect([200, 404]).toContain(response.status());
+test("admin route is indistinguishable from one that does not exist", async ({ page }) => {
+  // A redirect to /login would confirm the route exists. Both must 404.
+  const admin = await page.goto("/admin");
+  const nonexistent = await page.goto("/adminx");
+
+  expect(admin?.status()).toBe(404);
+  expect(nonexistent?.status()).toBe(404);
   await expect(page.getByText("Pilot stats")).toHaveCount(0);
+});
+
+test.describe("?next= cannot redirect off-site after login", () => {
+  // A backslash resolves like a slash in a relative Location, so a naive
+  // startsWith("/") guard would let these through and send a freshly
+  // authenticated user to an attacker's copy of the login page.
+  const ATTACKS = ["/%5Cevil.com", "//evil.com", "https://evil.com", "/%5C/evil.com"];
+
+  for (const attack of ATTACKS) {
+    test(`rejects ${attack}`, async ({ page }) => {
+      await page.goto(`/login?next=${attack}`);
+      const value = await page.locator('input[name="next"]').inputValue();
+      expect(value).toBe("/dashboard");
+    });
+  }
+
+  test("keeps a legitimate internal path, query string included", async ({ page }) => {
+    await page.goto("/login?next=/dashboard/vault%3Ftab%3Drecent");
+    await expect(page.locator('input[name="next"]')).toHaveValue("/dashboard/vault?tab=recent");
+  });
 });
 
 test("layout holds up on a phone viewport", async ({ page }) => {

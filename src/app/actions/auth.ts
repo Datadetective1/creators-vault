@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 
 import { isSupabaseConfigured, siteUrl } from "@/lib/env";
 import { createClient } from "@/lib/supabase/server";
+import { safeNextPath } from "@/lib/safe-redirect";
 
 export interface AuthFormState {
   error?: string;
@@ -23,12 +24,7 @@ function readCredentials(formData: FormData) {
   };
 }
 
-/** Only allow same-site relative paths, so `?next=` cannot become an open redirect. */
-function safeNextPath(raw: FormDataEntryValue | null): string {
-  const value = String(raw ?? "");
-  if (value.startsWith("/") && !value.startsWith("//")) return value;
-  return "/dashboard";
-}
+
 
 export async function signUpAction(
   _prev: AuthFormState,
@@ -54,7 +50,16 @@ export async function signUpAction(
     },
   });
 
-  if (error) return { error: error.message };
+  if (error) {
+    // Never surface the raw message: with email confirmation off, Supabase
+    // returns "User already registered", which is exactly the enumeration
+    // oracle the identities check below exists to prevent.
+    console.error("[auth] signUp failed", error.message);
+    return {
+      notice:
+        "Check your email for a confirmation link to finish setting up your vault.",
+    };
+  }
 
   // Supabase returns a user with no identities when the address is already
   // registered. Report the same neutral message either way so the form cannot
@@ -139,7 +144,12 @@ export async function updatePasswordAction(
   }
 
   const { error } = await supabase.auth.updateUser({ password });
-  if (error) return { error: error.message };
+  if (error) {
+    // e.g. "New password should be different from the old password" confirms a
+    // guess about the current one.
+    console.error("[auth] updateUser failed", error.message);
+    return { error: "That password could not be saved. Try a different one." };
+  }
 
   revalidatePath("/", "layout");
   redirect("/dashboard");

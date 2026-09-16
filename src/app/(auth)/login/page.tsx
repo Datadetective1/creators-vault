@@ -5,6 +5,7 @@ import { AuthForm, Field } from "@/components/auth-form";
 import { signInAction } from "@/app/actions/auth";
 import { NotConfiguredNotice } from "@/components/not-configured";
 import { isSupabaseConfigured } from "@/lib/env";
+import { safeNextPath } from "@/lib/safe-redirect";
 
 export const metadata: Metadata = { title: "Log in" };
 
@@ -14,7 +15,7 @@ export default async function LoginPage({
   searchParams: Promise<{ next?: string }>;
 }) {
   const { next } = await searchParams;
-  const nextPath = next && next.startsWith("/") && !next.startsWith("//") ? next : "/dashboard";
+  const nextPath = safeNextPath(next);
 
   return (
     <div className="card">

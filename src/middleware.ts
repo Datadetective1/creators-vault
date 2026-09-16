@@ -3,8 +3,14 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { isSupabaseConfigured, publicEnv } from "@/lib/env";
 
-/** Everything under these prefixes requires a signed-in user. */
-const PROTECTED_PREFIXES = ["/dashboard", "/admin"];
+/**
+ * Everything under these prefixes requires a signed-in user.
+ *
+ * /admin is deliberately absent: redirecting an anonymous visitor to /login
+ * would confirm the route exists, while a non-existent path 404s. The page
+ * gates itself and returns notFound() in every unauthorised case instead.
+ */
+const PROTECTED_PREFIXES = ["/dashboard"];
 
 /** Signed-in users are bounced away from these back to the dashboard. */
 const AUTH_ONLY_PREFIXES = ["/login", "/signup"];

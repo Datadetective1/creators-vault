@@ -121,11 +121,13 @@ export async function listAssets(
 }
 
 /**
- * Validate, enforce quota, and mint an upload target.
+ * Validate and mint an upload target.
  *
- * Quota is checked here — before any bytes move — because this is the only
- * place an upload can be authorised. The client-side check in the upload form
- * is a convenience; this one is the control.
+ * This is the happy path, not a security boundary. Every browser holds the
+ * anon key and the user's JWT, so PostgREST and the Storage API are reachable
+ * without going through here at all — which means the checks in this function
+ * are for giving a clear error, and the database is what actually enforces
+ * size, type and quota (migrations 0002 and 0004).
  */
 export async function createUpload(
   supabase: SupabaseClient,
@@ -139,14 +141,22 @@ export async function createUpload(
 
   const provider = getStorageProvider(supabase, ACTIVE_STORAGE_PROVIDER);
 
-  // Sweep abandoned uploads before charging quota, then charge against what is
-  // really in storage rather than only what was recorded.
-  const storedBytes = await reconcileOrphans(supabase, user, provider);
-  const summary = await getVaultSummary(supabase, user);
-  const chargedBytes = Math.max(summary.usedBytes, storedBytes);
+  // Opportunistic tidy-up of abandoned uploads. Best effort and strictly
+  // bounded: it must never decide whether this upload is allowed.
+  await sweepAbandonedUploads(supabase, user, provider);
 
-  if (chargedBytes + input.sizeBytes > summary.limitBytes) {
-    const remaining = Math.max(0, summary.limitBytes - chargedBytes);
+  /*
+   * A friendly pre-flight check, not the control.
+   *
+   * The real enforcement is in the database (migration 0004): a trigger
+   * overwrites file_size_bytes from the stored object and checks the plan
+   * limit under a per-user lock, so it applies to every path — including a
+   * client talking to PostgREST and Storage directly with the anon key, which
+   * never reaches this function at all.
+   */
+  const summary = await getVaultSummary(supabase, user);
+  if (summary.usedBytes + input.sizeBytes > summary.limitBytes) {
+    const remaining = Math.max(0, summary.limitBytes - summary.usedBytes);
     throw new QuotaExceededError(
       `This upload would exceed your ${summary.plan.name} plan storage. You have ${formatBytesForError(remaining)} left.`,
     );
@@ -168,7 +178,10 @@ export async function finalizeUpload(
   user: User,
   input: { storageKey: string; filename: string; mimeType: string },
 ): Promise<AssetRow> {
-  if (!input.storageKey.startsWith(`${user.id}/`)) {
+  // Strict shape rather than a prefix test: `<uid>/<name>` and nothing else.
+  // A startsWith check would accept `<uid>/../<victim>/file`, which is inert
+  // today but would become a traversal the moment this path changed.
+  if (!ownedKeyPattern(user.id).test(input.storageKey)) {
     throw new ValidationError("That storage location does not belong to you.");
   }
 
@@ -179,10 +192,21 @@ export async function finalizeUpload(
   }
 
   const filename = sanitizeFilename(input.filename);
+
+  // Re-validate against what was actually stored, not what the client declared.
+  // The signed upload URL does not bind a content type, so the bytes that
+  // landed may not be the type the upload was authorised for.
+  const storedCheck = checkFile(filename, stored.mimeType || input.mimeType, stored.sizeBytes);
+  if (!storedCheck.ok) {
+    await provider.remove([input.storageKey]);
+    throw new ValidationError(storedCheck.error ?? "That file is not supported.");
+  }
+
   const summary = await getVaultSummary(supabase, user);
 
   // The object is already stored, so an over-quota upload is rolled back rather
-  // than recorded.
+  // than recorded. The database enforces this too (migration 0004); this branch
+  // gives the user a clear message instead of a raw constraint error.
   if (summary.usedBytes + stored.sizeBytes > summary.limitBytes) {
     await provider.remove([input.storageKey]);
     throw new QuotaExceededError(
@@ -204,7 +228,27 @@ export async function finalizeUpload(
     .single();
 
   if (error || !data) {
-    // Do not leave an orphaned object behind if the metadata write fails.
+    /*
+     * A unique violation means this key was already finalised — a double
+     * submit, or a retry after a dropped response. The first row is valid and
+     * points at these bytes, so deleting the object here would destroy a live
+     * file the vault still lists. Return the existing row instead, making
+     * finalise idempotent.
+     */
+    if (error?.code === "23505") {
+      const existing = await supabase
+        .from("assets")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("storage_provider", provider.id)
+        .eq("storage_key", input.storageKey)
+        .maybeSingle();
+
+      if (existing.data) return existing.data as AssetRow;
+      throw new Error("That file could not be saved.");
+    }
+
+    // Any other failure leaves bytes with no row; remove them.
     await provider.remove([input.storageKey]);
     throw new Error(error?.message ?? "Could not save that file.");
   }
@@ -263,60 +307,74 @@ export async function deleteAsset(
   if (error) throw new Error(error.message);
 }
 
+/** `<user id>/<opaque name>` — no path segments, no traversal. */
+function ownedKeyPattern(userId: string): RegExp {
+  return new RegExp(`^${userId.replace(/[^0-9a-fA-F-]/g, "")}/[A-Za-z0-9._-]{1,200}$`);
+}
+
 /** In-flight uploads are given this long before they count as abandoned. */
 const ORPHAN_GRACE_MS = 60 * 60 * 1000; // 1 hour — matches the upload URL TTL
 
+/** Hard ceiling on sweep work per request, so upload latency stays flat. */
+const SWEEP_SCAN_LIMIT = 400;
+const SWEEP_DELETE_LIMIT = 100;
+const SWEEP_DELETE_CHUNK = 50;
+
 /**
- * Delete stored objects that have no asset row, and return the total bytes the
- * user still holds afterwards.
+ * Delete stored objects that have no asset row.
  *
  * An upload leaves bytes in storage before its metadata row is written, so a
  * dropped connection — common on mobile data — strands an object that nothing
- * lists and nothing can delete. Without this sweep those orphans would quietly
- * consume the creator's quota forever, and a client that never finalised on
- * purpose could occupy unlimited storage.
+ * lists and nothing can delete. This clears them.
  *
- * Objects younger than the grace period are left alone so an upload in
- * progress is never destroyed.
+ * Three rules keep it safe to run on the upload path:
+ *   * bounded — it scans and deletes a fixed maximum per call, so a vault with
+ *     many objects cannot turn one upload into hundreds of round trips;
+ *   * chunked — deletions go out in small batches rather than one huge request;
+ *   * advisory — every failure is swallowed. It returns nothing and gates
+ *     nothing, so a failed sweep can never block the upload that triggered it.
+ *     Quota is the database's job.
+ *
+ * Objects younger than the grace period, and any whose age is unknown, are
+ * left alone so an upload in progress is never destroyed.
  */
-async function reconcileOrphans(
+async function sweepAbandonedUploads(
   supabase: SupabaseClient,
   user: User,
   provider: StorageProvider,
-): Promise<number> {
-  const objects = await provider.listOwned(user.id);
-  if (objects.length === 0) return 0;
+): Promise<void> {
+  try {
+    const objects = await provider.listOwned(user.id, SWEEP_SCAN_LIMIT);
+    if (objects.length === 0) return;
 
-  const { data } = await supabase
-    .from("assets")
-    .select("storage_key")
-    .eq("user_id", user.id)
-    .eq("storage_provider", provider.id);
+    const { data } = await supabase
+      .from("assets")
+      .select("storage_key")
+      .eq("user_id", user.id)
+      .eq("storage_provider", provider.id);
 
-  const recorded = new Set((data ?? []).map((row) => (row as { storage_key: string }).storage_key));
-  const cutoff = Date.now() - ORPHAN_GRACE_MS;
+    const recorded = new Set(
+      (data ?? []).map((row) => (row as { storage_key: string }).storage_key),
+    );
+    const cutoff = Date.now() - ORPHAN_GRACE_MS;
 
-  const orphans = objects.filter((object) => {
-    if (recorded.has(object.key)) return false;
-    if (!object.createdAt) return false; // unknown age — leave it rather than risk a live upload
-    const created = new Date(object.createdAt).getTime();
-    return Number.isFinite(created) && created < cutoff;
-  });
+    const orphans = objects
+      .filter((object) => {
+        if (recorded.has(object.key)) return false;
+        if (!object.createdAt) return false;
+        const created = new Date(object.createdAt).getTime();
+        return Number.isFinite(created) && created < cutoff;
+      })
+      .slice(0, SWEEP_DELETE_LIMIT);
 
-  if (orphans.length > 0) {
-    // Best effort: a failed sweep must not block the upload the user asked for.
-    try {
-      await provider.remove(orphans.map((object) => object.key));
-    } catch (error) {
-      console.error("[vault] orphan sweep failed", error);
-      return objects.reduce((total, object) => total + object.sizeBytes, 0);
+    for (let i = 0; i < orphans.length; i += SWEEP_DELETE_CHUNK) {
+      const batch = orphans.slice(i, i + SWEEP_DELETE_CHUNK).map((object) => object.key);
+      await provider.remove(batch);
     }
+  } catch (error) {
+    // Tidy-up is never worth failing a user's upload over.
+    console.error("[vault] abandoned-upload sweep failed", error);
   }
-
-  const orphanKeys = new Set(orphans.map((object) => object.key));
-  return objects
-    .filter((object) => !orphanKeys.has(object.key))
-    .reduce((total, object) => total + object.sizeBytes, 0);
 }
 
 function formatBytesForError(bytes: number): string {

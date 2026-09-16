@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 
 import { formatBytes } from "@/lib/format";
 import { isSupabaseConfigured } from "@/lib/env";
@@ -19,8 +19,10 @@ export const dynamic = "force-dynamic";
 export default async function AdminPage() {
   if (!isSupabaseConfigured()) notFound();
 
+  // 404 rather than a redirect: an anonymous visitor must not be able to tell
+  // this route apart from one that does not exist.
   const user = await getCurrentUser();
-  if (!user) redirect("/login?next=/admin");
+  if (!user) notFound();
 
   const allowed = (process.env.ADMIN_EMAILS ?? "")
     .split(",")

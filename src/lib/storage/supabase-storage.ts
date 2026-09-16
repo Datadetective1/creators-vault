@@ -89,12 +89,12 @@ export class SupabaseStorageProvider implements StorageProvider {
     };
   }
 
-  async listOwned(userId: string): Promise<StoredObject[]> {
+  async listOwned(userId: string, limit = 1000): Promise<StoredObject[]> {
     const PAGE = 100;
-    const MAX_PAGES = 100; // 10k objects — far beyond any pilot plan
+    const maxPages = Math.max(1, Math.ceil(limit / PAGE));
     const objects: StoredObject[] = [];
 
-    for (let page = 0; page < MAX_PAGES; page += 1) {
+    for (let page = 0; page < maxPages; page += 1) {
       const { data, error } = await this.bucket.list(userId, {
         limit: PAGE,
         offset: page * PAGE,
@@ -111,10 +111,10 @@ export class SupabaseStorageProvider implements StorageProvider {
         });
       }
 
-      if (data.length < PAGE) break;
+      if (data.length < PAGE || objects.length >= limit) break;
     }
 
-    return objects;
+    return objects.slice(0, limit);
   }
 
   async remove(keys: string[]): Promise<void> {

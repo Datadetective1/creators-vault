@@ -93,26 +93,55 @@ async function applySubscriptionEvent(data: SubscriptionEventData): Promise<void
     return;
   }
 
-  const { error } = await supabase
+  /*
+   * Only write to a row that is unclaimed or already belongs to this Paddle
+   * customer. Without this an event could reassign one account's subscription
+   * onto another, even after the nonce mapping has narrowed who can be named.
+   */
+  let query = supabase
     .from("subscriptions")
-    .update({
-      paddle_customer_id: customerId,
-      paddle_subscription_id: subscriptionId,
-      plan: grantedPlan,
-      status,
-      current_period_end: periodEnd,
-    })
+    .update(
+      {
+        paddle_customer_id: customerId,
+        paddle_subscription_id: subscriptionId,
+        plan: grantedPlan,
+        status,
+        current_period_end: periodEnd,
+      },
+      { count: "exact" },
+    )
     .eq("user_id", userId);
 
+  if (customerId) {
+    query = query.or(`paddle_customer_id.is.null,paddle_customer_id.eq.${customerId}`);
+  }
+
+  const { error, count } = await query;
+
   if (error) throw new Error(error.message);
+
+  if (!count) {
+    console.error("[paddle] refused to reassign a subscription owned by another customer", {
+      subscriptionId,
+      customerId,
+    });
+  }
 }
+
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**
  * Find the account this subscription belongs to.
  *
- * Preference order: the user_id we attached as custom data at checkout, then
- * an existing row matching the Paddle subscription, then one matching the
- * Paddle customer.
+ * Resolution order: the checkout nonce we minted server-side, then an existing
+ * row matching the Paddle subscription, then one matching the Paddle customer.
+ *
+ * A user id is deliberately never read from the event payload. Paddle stores
+ * whatever custom data the browser passed and signs the webhook legitimately,
+ * so trusting a user_id there would let anyone apply a genuine, correctly
+ * signed subscription event to somebody else's account. The nonce is opaque,
+ * single-purpose, and only ever issued to the account that started the
+ * checkout.
  */
 async function resolveUserId(
   supabase: ReturnType<typeof createAdminClient>,
@@ -120,9 +149,14 @@ async function resolveUserId(
   customerId: string | null,
   subscriptionId: string | null,
 ): Promise<string | null> {
-  const fromCustomData = data.customData?.["user_id"];
-  if (typeof fromCustomData === "string" && fromCustomData.length > 0) {
-    return fromCustomData;
+  const nonce = data.customData?.["checkout_nonce"];
+  if (typeof nonce === "string" && UUID_PATTERN.test(nonce)) {
+    const { data: session } = await supabase
+      .from("checkout_sessions")
+      .select("user_id")
+      .eq("nonce", nonce)
+      .maybeSingle();
+    if (session?.user_id) return session.user_id as string;
   }
 
   if (subscriptionId) {

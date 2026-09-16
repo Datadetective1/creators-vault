@@ -6,7 +6,7 @@ const KIND_TINT: Record<string, string> = {
   Reel: "text-magenta-400",
   Video: "text-gold-400",
   Photo: "text-cyan-400",
-  Podcast: "text-violet-400",
+  Podcast: "text-violet-300",
   Thumbnail: "text-gold-300",
   "Brand Kit": "text-mint-400",
   Script: "text-cream-300",
@@ -24,18 +24,23 @@ export function MediaTile({
   sizes = "(max-width: 640px) 60vw, (max-width: 1024px) 33vw, 25vw",
   priority = false,
   showBadge = true,
+  alt,
 }: {
   item: MediaItem;
   className?: string;
   sizes?: string;
   priority?: boolean;
   showBadge?: boolean;
+  /** Override the catalogue alt; pass "" when the tile is purely decorative. */
+  alt?: string;
 }) {
   return (
     <figure className={`media-tile group ${className}`}>
       <Image
         src={item.src}
-        alt={item.alt}
+        // `??` not `||`, so an explicit "" is honoured rather than falling
+        // back to the full description.
+        alt={alt ?? item.alt}
         width={item.width}
         height={item.height}
         sizes={sizes}

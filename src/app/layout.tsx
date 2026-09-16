@@ -30,13 +30,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         {/*
           Marks the document as scripting-capable before first paint, which is
-          what gates the scroll-reveal styles. Without this the reveal classes
-          would hide every section with no way to un-hide them if the bundle
-          never runs.
+          what gates the scroll-reveal styles.
+
+          The flag is set optimistically and then withdrawn on a timer: an
+          inline script proves scripting is ON, not that the bundle will arrive,
+          so a failed or blocked chunk would otherwise leave every section
+          hidden with nothing left to un-hide it. Reveal's effect cancels the
+          timer as soon as it mounts, so the withdrawal only ever fires when the
+          bundle genuinely never ran.
         */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `document.documentElement.setAttribute("data-js","1")`,
+            __html: `var d=document.documentElement;d.setAttribute("data-js","1");d.dataset.revealFailsafe=String(setTimeout(function(){d.removeAttribute("data-js")},4000))`,
           }}
         />
       </head>

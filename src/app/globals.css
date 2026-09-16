@@ -32,6 +32,7 @@
 
   --color-magenta-400: #ff3d7f;
   --color-magenta-500: #e01f63;
+  --color-violet-300: #c4b5fd;
   --color-violet-400: #a855f7;
   --color-violet-500: #7b2ff7;
   --color-cyan-400: #22d3ee;
@@ -266,10 +267,6 @@ html[data-js="1"] .reveal[data-revealed="true"] {
 @keyframes sweep {
   0% { transform: translateX(-120%); }
   100% { transform: translateX(220%); }
-}
-@keyframes bar-rise {
-  0%, 100% { transform: scaleY(0.32); }
-  50% { transform: scaleY(1); }
 }
 
 .animate-drift { animation: drift 7s ease-in-out infinite; }

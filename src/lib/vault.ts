@@ -4,8 +4,11 @@ import type { SupabaseClient, User } from "@supabase/supabase-js";
 
 import { ACTIVE_STORAGE_PROVIDER, getStorageProvider } from "@/lib/storage";
 import type { UploadTarget } from "@/lib/storage";
-import { effectivePlan, type PlanDefinition } from "@/lib/plans";
+import { effectivePlan } from "@/lib/plans";
 import { checkFile, sanitizeFilename } from "@/lib/validation";
+import type { AssetRow, SubscriptionRow, VaultSummary } from "@/lib/types";
+
+export type { AssetRow, SubscriptionRow, VaultSummary } from "@/lib/types";
 
 /**
  * Vault business logic.
@@ -15,36 +18,6 @@ import { checkFile, sanitizeFilename } from "@/lib/validation";
  * goes through the StorageProvider interface, so swapping providers later does
  * not touch quota, ownership, or lifecycle logic.
  */
-
-export interface AssetRow {
-  id: string;
-  user_id: string;
-  filename: string;
-  storage_provider: string;
-  storage_key: string;
-  mime_type: string;
-  file_size_bytes: number;
-  created_at: string;
-}
-
-export interface SubscriptionRow {
-  plan: string;
-  status: string;
-  current_period_end: string | null;
-  paddle_subscription_id: string | null;
-  paddle_customer_id: string | null;
-}
-
-export interface VaultSummary {
-  plan: PlanDefinition;
-  status: string;
-  currentPeriodEnd: string | null;
-  usedBytes: number;
-  fileCount: number;
-  limitBytes: number;
-  percentUsed: number;
-  hasPaddleSubscription: boolean;
-}
 
 /** Signed-out callers get nothing; this is the single gate for vault reads. */
 export class NotAuthenticatedError extends Error {

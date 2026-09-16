@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { fileKind, formatBytes, formatDate } from "@/lib/format";
-import type { AssetRow } from "@/lib/vault";
+import type { AssetRow } from "@/lib/types";
 
 const KIND_LABEL: Record<ReturnType<typeof fileKind>, string> = {
   image: "Photo",

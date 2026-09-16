@@ -3,7 +3,7 @@ import "server-only";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 
 import { ACTIVE_STORAGE_PROVIDER, getStorageProvider } from "@/lib/storage";
-import type { UploadTarget } from "@/lib/storage";
+import type { StorageProvider, UploadTarget } from "@/lib/storage";
 import { effectivePlan } from "@/lib/plans";
 import { checkFile, sanitizeFilename } from "@/lib/validation";
 import type { AssetRow, SubscriptionRow, VaultSummary } from "@/lib/types";
@@ -137,15 +137,21 @@ export async function createUpload(
   const check = checkFile(filename, input.mimeType, input.sizeBytes);
   if (!check.ok) throw new ValidationError(check.error ?? "That file is not supported.");
 
+  const provider = getStorageProvider(supabase, ACTIVE_STORAGE_PROVIDER);
+
+  // Sweep abandoned uploads before charging quota, then charge against what is
+  // really in storage rather than only what was recorded.
+  const storedBytes = await reconcileOrphans(supabase, user, provider);
   const summary = await getVaultSummary(supabase, user);
-  if (summary.usedBytes + input.sizeBytes > summary.limitBytes) {
-    const remaining = Math.max(0, summary.limitBytes - summary.usedBytes);
+  const chargedBytes = Math.max(summary.usedBytes, storedBytes);
+
+  if (chargedBytes + input.sizeBytes > summary.limitBytes) {
+    const remaining = Math.max(0, summary.limitBytes - chargedBytes);
     throw new QuotaExceededError(
       `This upload would exceed your ${summary.plan.name} plan storage. You have ${formatBytesForError(remaining)} left.`,
     );
   }
 
-  const provider = getStorageProvider(supabase, ACTIVE_STORAGE_PROVIDER);
   const key = provider.buildKey(user.id, filename);
   return provider.createUploadTarget(key, input.mimeType);
 }
@@ -255,6 +261,62 @@ export async function deleteAsset(
     .eq("user_id", user.id);
 
   if (error) throw new Error(error.message);
+}
+
+/** In-flight uploads are given this long before they count as abandoned. */
+const ORPHAN_GRACE_MS = 60 * 60 * 1000; // 1 hour — matches the upload URL TTL
+
+/**
+ * Delete stored objects that have no asset row, and return the total bytes the
+ * user still holds afterwards.
+ *
+ * An upload leaves bytes in storage before its metadata row is written, so a
+ * dropped connection — common on mobile data — strands an object that nothing
+ * lists and nothing can delete. Without this sweep those orphans would quietly
+ * consume the creator's quota forever, and a client that never finalised on
+ * purpose could occupy unlimited storage.
+ *
+ * Objects younger than the grace period are left alone so an upload in
+ * progress is never destroyed.
+ */
+async function reconcileOrphans(
+  supabase: SupabaseClient,
+  user: User,
+  provider: StorageProvider,
+): Promise<number> {
+  const objects = await provider.listOwned(user.id);
+  if (objects.length === 0) return 0;
+
+  const { data } = await supabase
+    .from("assets")
+    .select("storage_key")
+    .eq("user_id", user.id)
+    .eq("storage_provider", provider.id);
+
+  const recorded = new Set((data ?? []).map((row) => (row as { storage_key: string }).storage_key));
+  const cutoff = Date.now() - ORPHAN_GRACE_MS;
+
+  const orphans = objects.filter((object) => {
+    if (recorded.has(object.key)) return false;
+    if (!object.createdAt) return false; // unknown age — leave it rather than risk a live upload
+    const created = new Date(object.createdAt).getTime();
+    return Number.isFinite(created) && created < cutoff;
+  });
+
+  if (orphans.length > 0) {
+    // Best effort: a failed sweep must not block the upload the user asked for.
+    try {
+      await provider.remove(orphans.map((object) => object.key));
+    } catch (error) {
+      console.error("[vault] orphan sweep failed", error);
+      return objects.reduce((total, object) => total + object.sizeBytes, 0);
+    }
+  }
+
+  const orphanKeys = new Set(orphans.map((object) => object.key));
+  return objects
+    .filter((object) => !orphanKeys.has(object.key))
+    .reduce((total, object) => total + object.sizeBytes, 0);
 }
 
 function formatBytesForError(bytes: number): string {

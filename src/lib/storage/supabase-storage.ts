@@ -89,6 +89,34 @@ export class SupabaseStorageProvider implements StorageProvider {
     };
   }
 
+  async listOwned(userId: string): Promise<StoredObject[]> {
+    const PAGE = 100;
+    const MAX_PAGES = 100; // 10k objects — far beyond any pilot plan
+    const objects: StoredObject[] = [];
+
+    for (let page = 0; page < MAX_PAGES; page += 1) {
+      const { data, error } = await this.bucket.list(userId, {
+        limit: PAGE,
+        offset: page * PAGE,
+      });
+      if (error || !data || data.length === 0) break;
+
+      for (const entry of data) {
+        const metadata = (entry.metadata ?? {}) as { size?: number; mimetype?: string };
+        objects.push({
+          key: `${userId}/${entry.name}`,
+          sizeBytes: typeof metadata.size === "number" ? metadata.size : 0,
+          mimeType: metadata.mimetype ?? "application/octet-stream",
+          createdAt: entry.created_at ?? undefined,
+        });
+      }
+
+      if (data.length < PAGE) break;
+    }
+
+    return objects;
+  }
+
   async remove(keys: string[]): Promise<void> {
     if (keys.length === 0) return;
     const { error } = await this.bucket.remove(keys);

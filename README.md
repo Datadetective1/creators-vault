@@ -139,6 +139,10 @@ entirely, so multi-gigabyte video works.
   uploaded filename, so path traversal is structurally impossible.
 - **Quota is enforced server-side** before an upload is authorised, and the
   recorded size is read back from storage rather than trusted from the client.
+  It is charged against what is actually in storage, not just what was
+  recorded, so bytes uploaded without finalising still count. Objects older
+  than an hour with no asset row are swept on the next upload, so a dropped
+  connection does not permanently consume a creator's allowance.
 - **Webhooks are signature-verified** with the raw request body.
 - **`.env*` is gitignored.** No secret belongs in this repository.
 

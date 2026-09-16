@@ -32,6 +32,8 @@ export interface StoredObject {
   key: string;
   sizeBytes: number;
   mimeType: string;
+  /** When the object landed, when the provider reports it. */
+  createdAt?: string;
 }
 
 export interface DownloadUrlOptions {
@@ -61,6 +63,15 @@ export interface StorageProvider {
 
   /** Object metadata, or null when the object does not exist. */
   stat(key: string): Promise<StoredObject | null>;
+
+  /**
+   * Every object actually held under a user's prefix.
+   *
+   * Reflects real storage, including objects whose metadata row was never
+   * written, so quota can be charged against what exists rather than what was
+   * recorded, and abandoned uploads can be identified and swept.
+   */
+  listOwned(userId: string): Promise<StoredObject[]>;
 
   /** Remove objects. Must succeed silently when a key is already gone. */
   remove(keys: string[]): Promise<void>;

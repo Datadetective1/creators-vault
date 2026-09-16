@@ -55,7 +55,7 @@ export function Hero({ signedIn }: { signedIn: boolean }) {
 
           <div className="text-center lg:col-start-1 lg:row-start-2 lg:text-left">
             <Reveal delay={140}>
-              <p className="prose-muted mx-auto max-w-lg lg:mx-0">
+              <p className="prose-muted mx-auto max-w-lg text-cream-300 lg:mx-0">
                 Your best work shouldn&rsquo;t live in only one place. Keep an independent copy
                 of the videos, photos and files your audience is built on.
               </p>
@@ -149,7 +149,8 @@ function HeroCollage() {
         <MediaTile
           item={podcast!}
           priority
-          sizes="(max-width: 640px) 40vw, 190px"
+          // Real box is 228 CSS px; 190 left this tile at 1.68x on retina.
+          sizes="(max-width: 640px) 40vw, 240px"
           className="aspect-square shadow-2xl shadow-black/60 ring-1 ring-white/10"
         />
       </div>

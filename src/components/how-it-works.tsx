@@ -132,6 +132,10 @@ function UploadVisual() {
             showBadge={false}
             sizes="32px"
             className="h-9 w-7 shrink-0"
+            // A thumbnail standing in for "a file" inside a mock upload card:
+            // announcing the photograph's full description would describe
+            // scenery the diagram is not about.
+            alt=""
           />
           <div className="min-w-0 flex-1">
             <div className="h-1.5 w-16 rounded-full bg-ink-600" />

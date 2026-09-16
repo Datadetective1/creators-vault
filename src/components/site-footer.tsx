@@ -19,7 +19,7 @@ export function SiteFooter() {
           <div className="grid grid-cols-2 gap-x-12 gap-y-6 sm:grid-cols-3">
             <FooterColumn title="Product">
               <FooterLink href="/#how-it-works">How it works</FooterLink>
-              <FooterLink href="/#what-you-can-store">What you can store</FooterLink>
+              <FooterLink href="/#what-you-can-protect">What you can protect</FooterLink>
               <FooterLink href="/#pricing">Pricing</FooterLink>
             </FooterColumn>
 

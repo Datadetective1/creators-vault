@@ -134,7 +134,8 @@ Every tile on the landing page is real creator photography, and the hero
 backdrop is real footage, all sourced from Pexels under the
 [Pexels License](https://www.pexels.com/license/) (free for commercial use,
 modification allowed, attribution not required). Provenance for every file —
-source page, photographer, licence — is recorded in `public/media/CREDITS.md`.
+source page, photographer, licence — is recorded in
+[public/media/CREDITS.md](public/media/CREDITS.md).
 
 `scripts/photo-manifest.json` is the source of truth: one entry per slot with
 the photo's URL, page, credit and licence, plus the hero video. Run
@@ -148,14 +149,22 @@ exact aspect ratio, ≤1280 px, WebP q72) and the hero loop
 (`hero-creator.webm` VP9 + `hero-creator.mp4` H.264 fallback + poster, 720p,
 9-second seamless cross-faded loop, no audio track). Without `FFMPEG` the
 photos still import and the video is reported as skipped. The script also
-regenerates `CREDITS.md`.
+regenerates [CREDITS.md](public/media/CREDITS.md), crediting everything that is
+on disk rather than only the current run's downloads, so a partial run never
+drops the record for a file that is still shipping.
 
-The hero video is muted, `playsInline`, `loop`, `preload="metadata"` and
-poster-backed, so a browser that blocks autoplay — or a visitor with reduced
-motion — simply sees the first frame.
+The hero video is muted, `playsInline`, `loop` and poster-backed. Motion is
+opt-in: the element ships with no `autoplay` and no `<source>` children, and
+the client adds them only once it knows the viewer has not asked for reduced
+motion. A browser that blocks autoplay — or a visitor with reduced motion —
+simply sees the poster, and in the reduced-motion case the 618 KB loop is never
+requested at all.
 
 **Changing a picture:** edit the manifest entry (URL, credit, optional crop
-`position`) and re-run the script. `src/lib/media.ts` keeps a `swapHint` per
+`position`, optional `crop` box) and re-run the script. `crop` takes
+`{left, top, width, height}` as fractions of the framed tile and is how a shot
+whose full frame carries a legible third-party wordmark earns its place — see
+`brand-01`. `src/lib/media.ts` keeps a `swapHint` per
 slot describing the brief, so a replacement stays on-brief and at the same
 aspect ratio without any layout change.
 

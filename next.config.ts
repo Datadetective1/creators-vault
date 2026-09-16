@@ -2,6 +2,12 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  images: {
+    // Next's default is webp-only. Offering AVIF first cuts the landing
+    // page's image payload substantially at equivalent visual quality; the
+    // optimizer sends `Vary: Accept`, so browsers without AVIF still get WebP.
+    formats: ["image/avif", "image/webp"],
+  },
   poweredByHeader: false,
   async headers() {
     return [

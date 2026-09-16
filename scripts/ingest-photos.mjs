@@ -20,6 +20,7 @@
  */
 
 import { mkdir, writeFile, readFile, rm } from "node:fs/promises";
+import { existsSync, readdirSync } from "node:fs";
 import { spawn } from "node:child_process";
 import os from "node:os";
 import path from "node:path";
@@ -56,18 +57,39 @@ async function download(url, expectType) {
  * Attention favours detail, which on a gear-heavy shot can mean the camera
  * wins over the face; an entry can set `position` ("top", "centre", ...) to
  * override it.
+ *
+ * An entry can also set `crop` — {left, top, width, height} as fractions of
+ * the framed tile — to keep a region of that framing and discard the rest.
+ * This is how a shot earns its place when part of the frame carries a legible
+ * third-party wordmark: the brief asks us to avoid those where we can, and a
+ * tighter crop is cheaper than losing the photograph. The zoom is taken before
+ * the downscale, so the kept region still lands at full tile resolution.
  */
-async function optimise(buffer, { width, height, position }) {
+async function optimise(buffer, { width, height, position, crop }) {
   const scale = Math.min(1, MAX_EDGE / Math.max(width, height));
-  return sharp(buffer)
-    .resize({
-      width: Math.round(width * scale),
-      height: Math.round(height * scale),
-      fit: "cover",
-      position: position ?? sharp.strategy.attention,
-    })
-    .webp({ quality: 72, effort: 6 })
-    .toBuffer();
+  const target = { width: Math.round(width * scale), height: Math.round(height * scale) };
+
+  // Frame wide enough that `crop` lands exactly on target without upscaling.
+  const framed = crop
+    ? { width: Math.round(target.width / crop.width), height: Math.round(target.height / crop.height) }
+    : target;
+
+  const pipeline = sharp(buffer).resize({
+    ...framed,
+    fit: "cover",
+    position: position ?? sharp.strategy.attention,
+  });
+
+  if (crop) {
+    pipeline.extract({
+      left: Math.round(crop.left * framed.width),
+      top: Math.round(crop.top * framed.height),
+      width: target.width,
+      height: target.height,
+    });
+  }
+
+  return pipeline.webp({ quality: 72, effort: 6 }).toBuffer();
 }
 
 async function ingestPhotos(photos) {
@@ -264,9 +286,27 @@ async function main() {
   }
 
   if (photos.done.length > 0 || video?.status === "done") {
+    // Credit everything that is actually on disk, not just this run's
+    // successes. A run without FFMPEG — or with a single failed download —
+    // still ships the previously imported files, and they must stay credited.
+    const credited = manifest.photos.filter((entry) =>
+      existsSync(path.join(PHOTO_DIR, `${entry.id}.webp`)),
+    );
+    const heroOnDisk =
+      Boolean(manifest.video?.id) &&
+      existsSync(path.join(MEDIA_DIR, `${manifest.video.id}.mp4`));
+
+    // An asset no manifest entry claims would ship uncredited; say so loudly.
+    const claimed = new Set(manifest.photos.map((entry) => `${entry.id}.webp`));
+    for (const file of readdirSync(PHOTO_DIR)) {
+      if (file.endsWith(".webp") && !claimed.has(file)) {
+        console.warn(`  WARNING: photos/${file} has no manifest entry — it will ship uncredited`);
+      }
+    }
+
     await writeCredits({
-      photos: photos.done,
-      video: video?.status === "done" ? manifest.video : undefined,
+      photos: credited,
+      video: heroOnDisk ? manifest.video : undefined,
       licenses: manifest.licenses,
     });
   }

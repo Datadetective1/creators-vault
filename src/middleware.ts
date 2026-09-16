@@ -77,9 +77,13 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     /*
-     * Everything except Next internals and static assets. The Paddle webhook is
-     * excluded because it authenticates by signature, not by session cookie.
+     * Everything except Next internals and static assets. The hero loop's
+     * mp4/webm are excluded for the same reason as the images: they are static
+     * files that never need a session, and without them every byte-range
+     * request for the video would cost a Supabase getUser() round trip. The
+     * Paddle webhook is excluded because it authenticates by signature, not by
+     * session cookie.
      */
-    "/((?!_next/static|_next/image|favicon.ico|api/paddle/webhook|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|api/paddle/webhook|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|mp4|webm)$).*)",
   ],
 };

@@ -28,3 +28,21 @@ function getSnapshot() {
 export function usePrefersReducedMotion(): boolean {
   return useSyncExternalStore(subscribe, getSnapshot, () => false);
 }
+
+const noopSubscribe = () => () => {};
+
+/**
+ * False during SSR and the hydration pass, true once the client owns the tree.
+ *
+ * Lets a component keep something out of the server markup until the real
+ * client-side value of a media query is known. useSyncExternalStore rather
+ * than a setState-in-effect flag so it stays inside the lint rules and does
+ * not schedule an extra commit.
+ */
+export function useIsHydrated(): boolean {
+  return useSyncExternalStore(
+    noopSubscribe,
+    () => true,
+    () => false,
+  );
+}

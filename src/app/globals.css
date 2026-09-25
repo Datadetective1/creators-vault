@@ -32,6 +32,7 @@
 
   --color-magenta-400: #ff3d7f;
   --color-magenta-500: #e01f63;
+  --color-violet-300: #c4b5fd;
   --color-violet-400: #a855f7;
   --color-violet-500: #7b2ff7;
   --color-cyan-400: #22d3ee;
@@ -263,19 +264,61 @@ html[data-js="1"] .reveal[data-revealed="true"] {
   70% { transform: scale(1.5); opacity: 0; }
   100% { transform: scale(1.5); opacity: 0; }
 }
-@keyframes sweep {
-  0% { transform: translateX(-120%); }
-  100% { transform: translateX(220%); }
+/* --- social content -> lock -------------------------------------------- */
+/* Each platform carries its own unit-circle --cx/--cy; the shared --ring-r
+   scales the whole ring, so one radius drives every position. */
+@keyframes platform-inflow {
+  0% {
+    transform: translate(calc(var(--ring-r) * var(--cx)), calc(var(--ring-r) * var(--cy))) scale(1);
+    opacity: 0;
+  }
+  12% {
+    transform: translate(calc(var(--ring-r) * var(--cx)), calc(var(--ring-r) * var(--cy))) scale(1);
+    opacity: 1;
+  }
+  58% {
+    transform: translate(calc(var(--ring-r) * var(--cx)), calc(var(--ring-r) * var(--cy))) scale(1);
+    opacity: 1;
+  }
+  86%, 100% {
+    transform: translate(0, 0) scale(0.28);
+    opacity: 0;
+  }
 }
-@keyframes bar-rise {
-  0%, 100% { transform: scaleY(0.32); }
-  50% { transform: scaleY(1); }
+@keyframes lock-absorb {
+  0%, 74% { transform: scale(1); }
+  82% { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+@keyframes lock-ring {
+  0%, 70% { transform: scale(1); opacity: 0; }
+  82% { transform: scale(1.18); opacity: 0.7; }
+  100% { transform: scale(1.4); opacity: 0; }
+}
+@keyframes marquee-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
 }
 
 .animate-drift { animation: drift 7s ease-in-out infinite; }
 .animate-drift-slow { animation: drift-slow 11s ease-in-out infinite; }
 .animate-pulse-ring { animation: pulse-ring 2.8s ease-out infinite; }
-.animate-sweep { animation: sweep 2.6s ease-in-out infinite; }
+/* `backwards` matters: without it each chip renders at its own computed
+   transform (none — i.e. the ring centre, on top of the lock) for the whole of
+   its animation-delay, up to 4.8s of five chips stacked on the mark. */
+.animate-platform-inflow {
+  animation: platform-inflow 6s ease-in-out infinite;
+  animation-fill-mode: backwards;
+}
+.animate-lock-absorb { animation: lock-absorb 1.2s ease-out infinite; }
+.animate-lock-ring { animation: lock-ring 1.2s ease-out infinite; }
+
+/* Two identical halves translated by exactly -50% loop seamlessly. */
+.marquee-track { animation: marquee-scroll 26s linear infinite; }
+.marquee-mask {
+  mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
+}
 
 /* One switch turns all of it off. */
 @media (prefers-reduced-motion: reduce) {
@@ -298,5 +341,31 @@ html[data-js="1"] .reveal[data-revealed="true"] {
   .media-tile:hover img,
   .btn-primary:hover {
     transform: none !important;
+  }
+
+  /*
+   * The blanket rule above collapses every animation to its FINAL frame, and
+   * the platform inflow ends invisible at the centre of the lock. Left alone
+   * that would hide the platforms from exactly the people who cannot watch
+   * them move. Park them on the ring instead, and silence the lock pulse and
+   * the marquee outright. Stated in CSS as well as in JS so it holds during
+   * server render, before the motion query has been read on the client.
+   */
+  .animate-platform-inflow {
+    animation: none !important;
+    transform: translate(calc(var(--ring-r) * var(--cx)), calc(var(--ring-r) * var(--cy)));
+    opacity: 1;
+  }
+  .animate-lock-absorb {
+    animation: none !important;
+    transform: none;
+  }
+  .animate-lock-ring {
+    animation: none !important;
+    opacity: 0;
+  }
+  .marquee-track {
+    animation: none !important;
+    transform: none;
   }
 }

@@ -83,7 +83,7 @@ export const CONTENT_WALL: MediaItem[] = [
     width: 720,
     height: 720,
     kind: "Brand Kit",
-    alt: "Overhead flat lay of a creator's kit: cameras, lenses, laptop, microphone and headphones",
+    alt: "Overhead flat lay of a creator's kit: camera body, lenses, an action camera, spare batteries and a flexible tripod",
     swapHint: "Square flat-lay of brand assets, logos or a media kit",
   },
   {

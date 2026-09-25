@@ -17,8 +17,10 @@ import { usePrefersReducedMotion } from "@/lib/use-reduced-motion";
  *  2. A rect-based sweep on scroll, throttled to one animation frame, as a
  *     backstop for intersections the observer coalesces away during fast or
  *     programmatic scrolling.
- *  3. The styles themselves are gated on `html[data-js="1"]`, so if the bundle
- *     never runs the page renders fully visible instead of blank.
+ *  3. The styles themselves are gated on `html[data-js="1"]`, which layout.tsx
+ *     sets inline and then withdraws on a 4s timer. This effect cancels that
+ *     timer, so a bundle that never arrives un-hides the page instead of
+ *     leaving it blank.
  */
 export function Reveal({
   children,
@@ -34,6 +36,14 @@ export function Reveal({
   const [seen, setSeen] = useState(false);
 
   useEffect(() => {
+    // The bundle ran, so the failsafe in layout.tsx must not strip data-js.
+    const root = document.documentElement;
+    const failsafe = root.dataset.revealFailsafe;
+    if (failsafe) {
+      window.clearTimeout(Number(failsafe));
+      delete root.dataset.revealFailsafe;
+    }
+
     if (reduced) return;
 
     const node = ref.current;

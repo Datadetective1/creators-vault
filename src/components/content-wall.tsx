@@ -31,24 +31,48 @@ export function ContentWall() {
       {/* --- phone: two swipeable rails --- */}
       <Reveal delay={80} className="mt-10 space-y-3 md:hidden">
         <div className="container-page">
-          <div className="rail pb-1">
+          {/* A scroll container needs a tab stop, or its overflow is
+              unreachable without a pointer. globals.css already paints the
+              gold ring on [tabindex]:focus-visible. */}
+          <div
+            className="rail pb-1"
+            tabIndex={0}
+            role="group"
+            aria-label="Content you can protect, row 1 of 2"
+          >
             {topRow.map((item) => (
               <div key={item.src} className="rail-item w-[42vw] max-w-[11rem]">
-                <MediaTile item={item} sizes="42vw" className="aspect-[9/14]" />
+                {/* 42vw and max-w-[11rem] meet at 419px; above that the tile is
+                    a fixed 176px. Keeping the 42vw term holds 384w in the
+                    srcset for the narrow case. */}
+                <MediaTile
+                  item={item}
+                  sizes="(max-width: 419px) 42vw, 176px"
+                  className="aspect-[9/14]"
+                />
               </div>
             ))}
           </div>
         </div>
         <div className="container-page">
-          <div className="rail pb-1">
+          <div
+            className="rail pb-1"
+            tabIndex={0}
+            role="group"
+            aria-label="Content you can protect, row 2 of 2"
+          >
             {bottomRow.map((item) => (
               <div key={item.src} className="rail-item w-[42vw] max-w-[11rem]">
-                <MediaTile item={item} sizes="42vw" className="aspect-[9/14]" />
+                <MediaTile
+                  item={item}
+                  sizes="(max-width: 419px) 42vw, 176px"
+                  className="aspect-[9/14]"
+                />
               </div>
             ))}
           </div>
         </div>
-        <p className="container-page pt-1 text-xs text-muted">Swipe to see more &rarr;</p>
+        <p className="container-page pt-1 text-xs text-muted">Swipe or scroll to see more &rarr;</p>
       </Reveal>
 
       {/* --- tablet and up: masonry --- */}

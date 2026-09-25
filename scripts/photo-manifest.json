@@ -123,7 +123,9 @@
       "license": "Pexels License",
       "credit": "Ricky Esquivel",
       "creditUrl": "https://www.pexels.com/@rickyesquivel/",
-      "alt": "Overhead flat lay of a creator's kit: cameras, lenses, laptop, microphone and headphones"
+      "cropReason": "The full frame carries a large legible RØDE wordmark and an Apple logo; this keeps the gear and drops both.",
+      "crop": { "left": 0, "top": 0.2986, "width": 0.7014, "height": 0.7014 },
+      "alt": "Overhead flat lay of a creator's kit: camera body, lenses, an action camera, spare batteries and a flexible tripod"
     },
     {
       "id": "script-01",

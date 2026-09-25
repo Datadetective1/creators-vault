@@ -111,7 +111,7 @@ export function PlanPicker({
         </p>
       )}
 
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2">
         {PLAN_ORDER.map((tier) => {
           const plan = PLANS[tier];
           const isCurrent = tier === currentTier;
@@ -134,10 +134,16 @@ export function PlanPicker({
                 )}
               </div>
 
-              <p className="mt-3 text-2xl font-semibold tracking-tight text-gold-400">
-                {plan.storageLabel}
+              <p className="mt-3 flex items-baseline gap-1.5">
+                <span className="text-2xl font-semibold tracking-tight text-gold-400">
+                  {plan.priceLabel}
+                </span>
+                {plan.pricePeriod && (
+                  <span className="text-sm text-muted">{plan.pricePeriod}</span>
+                )}
               </p>
-              <p className="text-sm text-muted">{plan.tagline}</p>
+              <p className="text-sm text-cream-300">{plan.storageLabel}</p>
+              <p className="mt-1 text-sm text-muted">{plan.tagline}</p>
 
               <button
                 type="button"

@@ -8,26 +8,141 @@ import { expect, test } from "@playwright/test";
 test("landing page shows the full story", async ({ page }) => {
   await page.goto("/");
 
-  await expect(page.getByRole("heading", { level: 1 })).toContainText(
-    "Your content is your business.",
-  );
-  await expect(page.getByText("Protect the work behind your brand.").first()).toBeVisible();
+  // Ravi's three lines are all present in the h1 at once — the animation only
+  // changes which one is emphasised, so none of them may be missing from the
+  // DOM at any point.
+  const h1 = page.getByRole("heading", { level: 1 });
+  for (const line of ["Content = $$$", "Content = Time", "Content = Brand"]) {
+    await expect(h1).toContainText(line);
+  }
 
   // Every section the pilot needs in order to explain itself.
   for (const heading of [
-    "Most creators have exactly one copy of their best work.",
-    "Three steps. No technical setup.",
+    "Why your business is at risk right now:",
+    "The Solution",
+    "Upload. Secure. Retrieve.",
     "All of this can live in your vault.",
-    "Start free. Upgrade when you outgrow it.",
+    "Start free. One simple paid plan.",
     "Questions creators ask first.",
   ]) {
     await expect(page.getByRole("heading", { name: heading })).toBeVisible();
   }
 
-  // All three plans are presented.
-  for (const plan of ["5 GB", "100 GB", "500 GB"]) {
-    await expect(page.getByText(plan, { exact: true }).first()).toBeVisible();
+  // Pilot pricing: exactly two tiers, Free and Creator.
+  await expect(page.getByText("5 GB", { exact: true }).first()).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Creator", exact: true })).toBeVisible();
+  await expect(page.getByText("$4", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("Up to 100 GB", { exact: false }).first()).toBeVisible();
+});
+
+test("the retired 500 GB Pro tier is gone from the product", async ({ page }) => {
+  await page.goto("/");
+  const body = (await page.textContent("body")) ?? "";
+
+  // Not merely hidden from the pricing section — removed from the plan model,
+  // so it cannot reappear anywhere the definitions are read.
+  expect(body).not.toContain("500 GB");
+  expect(body).not.toMatch(/\bPro\b/);
+});
+
+test("Sovereign Security makes no unsupported legal claim", async ({ page }) => {
+  await page.goto("/");
+  const body = (await page.textContent("body")) ?? "";
+
+  // The heading is Ravi's and stays.
+  expect(body).toContain("Sovereign Security");
+
+  // The paragraph under it is the factual replacement, exactly.
+  expect(body).toContain(
+    "Keep an independent copy of your content outside the social platforms where you publish it.",
+  );
+  expect(body).toContain(
+    "Your archive is stored separately from your social accounts, helping you reduce dependence on platform policy changes, account restrictions, and unexpected takedowns.",
+  );
+
+  // None of the claims the product cannot substantiate may return.
+  for (const forbidden of [
+    "completely insulated",
+    "unpredictable domestic laws",
+    "regulatory overreach",
+    "off-shore",
+    "offshore",
+    "independent jurisdiction",
+  ]) {
+    expect(body.toLowerCase()).not.toContain(forbidden.toLowerCase());
   }
+});
+
+test("hero carries Ravi's exact wording", async ({ page }) => {
+  await page.goto("/");
+
+  await expect(
+    page.getByText(
+      "Secure your content from platform censorship and shifting regulations",
+      { exact: true },
+    ),
+  ).toBeVisible();
+
+  // Upload -> Secure -> Retrieve anytime, in order, as one process.
+  const steps = page.locator("ol li").filter({ hasText: /^(Upload|Secure|Retrieve anytime)$/ });
+  await expect(steps).toHaveCount(3);
+  await expect(steps.nth(0)).toHaveText("Upload");
+  await expect(steps.nth(1)).toHaveText("Secure");
+  await expect(steps.nth(2)).toHaveText("Retrieve anytime");
+});
+
+test("the risk and solution sections use the reviewed copy", async ({ page }) => {
+  await page.goto("/");
+  const body = (await page.textContent("body")) ?? "";
+
+  for (const line of [
+    "Your content is a vital business asset.",
+    "You surrender exclusive ownership upon upload.",
+    "Platform censorship and regulations can freeze you out instantly.",
+    "You are one glitch away from losing everything.",
+    "Sovereign Security",
+    "On-Demand Freedom",
+  ]) {
+    expect(body).toContain(line);
+  }
+});
+
+test("the confusing duplicate three-step explainer is gone", async ({ page }) => {
+  await page.goto("/");
+  const body = (await page.textContent("body")) ?? "";
+
+  // The old headline and the phone-to-vault diagram it sat above both went;
+  // the page must explain the flow exactly once.
+  expect(body).not.toContain("Three steps. No technical setup.");
+  expect(body).not.toContain("Choose your valuable content");
+  expect(body).not.toContain("Upload to your private vault");
+
+  // 01 / 02 / 03 paired with the right words, in the right order — a digit
+  // appearing anywhere on the page is not evidence the labels survived.
+  const cards = page.locator("#how-it-works article");
+  await expect(cards).toHaveCount(3);
+  for (const [index, [number, label]] of [
+    ["01", "Upload"],
+    ["02", "Secure"],
+    ["03", "Retrieve"],
+  ].entries()) {
+    const card = cards.nth(index);
+    await expect(card).toContainText(number!);
+    await expect(card.getByRole("heading")).toHaveText(label!);
+  }
+});
+
+test("no adoption metric is claimed anywhere", async ({ page }) => {
+  await page.goto("/");
+  const body = ((await page.textContent("body")) ?? "").toLowerCase();
+
+  // We have no verified users. Nothing may imply otherwise.
+  expect(body).not.toContain("thousands of");
+  expect(body).not.toMatch(/join \d/);
+  expect(body).not.toMatch(/\d+[,\d]*\+? (creators|users|customers) (already|trust|use)/);
+
+  // The platform strip must disclaim affiliation rather than imply it.
+  expect(body).toContain("not affiliated with, endorsed by, or partnered with");
 });
 
 test("the page makes no claim to import from social platforms", async ({ page }) => {

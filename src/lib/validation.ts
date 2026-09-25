@@ -129,5 +129,7 @@ export const finalizeUploadSchema = z.object({
 });
 
 export const checkoutRequestSchema = z.object({
-  tier: z.enum(["creator", "pro"]),
+  // `creator` is the only paid tier the pilot sells. A request naming the
+  // retired `pro` tier is rejected here rather than reaching Paddle.
+  tier: z.enum(["creator"]),
 });

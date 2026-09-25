@@ -6,21 +6,58 @@
  * wording is the deliverable, not a first draft.
  *
  * Marked `VERBATIM` below:
- *   hero.equation, hero.support, hero.steps, risk.*, solution.*, steps.labels
+ *   hero.equation, hero.support, hero.steps, risk.*, solution.heading,
+ *   solution.*.title, steps.items
  *
- * A translator should treat this file as the source of truth and add a sibling
- * (hi.ts, bn.ts) with the same shape. See locales.ts for why none exists yet.
+ * A translator adds a sibling (hi.ts, bn.ts) annotated `: Dictionary` and
+ * registers it in index.ts. The shape is declared explicitly rather than
+ * inferred from the English object — inferring it with `as const` would give
+ * every field a *literal* type, so the only value assignable to `Dictionary`
+ * would be the English text itself and no translation could ever compile.
  */
 
-export const en = {
+export interface Dictionary {
+  hero: {
+    eyebrow: string;
+    equation: readonly string[];
+    support: string;
+    steps: readonly string[];
+    ctaPrimary: string;
+    ctaPrimarySignedIn: string;
+    ctaSecondary: string;
+  };
+  marquee: {
+    lead: string;
+    disclaimer: string;
+    /** Short qualifier shown with the platform marks in the hero. */
+    heroNote: string;
+  };
+  risk: {
+    eyebrow: string;
+    heading: string;
+    points: readonly { lead: string; body: string }[];
+  };
+  solution: {
+    heading: string;
+    blocks: readonly { title: string; lead: string; body: string }[];
+  };
+  steps: {
+    eyebrow: string;
+    heading: string;
+    intro: string;
+    items: readonly { number: string; label: string; body: string }[];
+  };
+}
+
+export const en: Dictionary = {
   hero: {
     eyebrow: "Early access for creators",
     /** VERBATIM — Ravi's three lines, in order. */
-    equation: ["Content = $$$", "Content = Time", "Content = Brand"] as const,
+    equation: ["Content = $$$", "Content = Time", "Content = Brand"],
     /** VERBATIM. */
     support: "Secure your content from platform censorship and shifting regulations",
     /** VERBATIM — reads as a process: Upload → Secure → Retrieve anytime. */
-    steps: ["Upload", "Secure", "Retrieve anytime"] as const,
+    steps: ["Upload", "Secure", "Retrieve anytime"],
     ctaPrimary: "Protect My Content",
     ctaPrimarySignedIn: "Go to my vault",
     ctaSecondary: "See how it works",
@@ -36,6 +73,13 @@ export const en = {
     lead: "For the work you publish on",
     disclaimer:
       "Platform names and logos are the property of their respective owners. Creator Vault is an independent product and is not affiliated with, endorsed by, or partnered with any of them.",
+    /**
+     * The hero animation shows platform marks converging on the lock, which
+     * reads as an import if nothing says otherwise — and the product explicitly
+     * does not import. This travels with the marks so the qualifier is on
+     * screen with the picture, not three sections below it.
+     */
+    heroNote: "You upload your own copies. Creator Vault never connects to these platforms.",
   },
 
   risk: {
@@ -68,10 +112,25 @@ export const en = {
     heading: "The Solution",
     blocks: [
       {
-        /** VERBATIM. */
+        /** VERBATIM — the heading stays exactly as Ravi wrote it. */
         title: "Sovereign Security",
-        lead: "Your content is hosted in a secure, independent jurisdiction completely insulated from restrictive local regulations and unpredictable domestic laws.",
-        body: "By utilizing off-shore, privacy-first infrastructure, your digital assets remain safe from regulatory overreach and arbitrary platform takedowns. Your content, your rules.",
+        /**
+         * The paragraph does NOT. Ravi's original asserted hosting in an
+         * independent jurisdiction "completely insulated from restrictive local
+         * regulations and unpredictable domestic laws", reached via "off-shore,
+         * privacy-first infrastructure" and "safe from regulatory overreach".
+         * The pilot is a single Supabase project — README.md recommends Mumbai
+         * ap-south-1 for Indian creators — so every one of those clauses was
+         * unsupportable, and the last one implies customer data is legally
+         * unreachable, which no hosting arrangement delivers.
+         *
+         * This replacement was supplied by the client and keeps the intended
+         * message — an independent copy, away from the platforms — while
+         * claiming only what the product actually does. Do not re-add legal
+         * guarantees here.
+         */
+        lead: "Keep an independent copy of your content outside the social platforms where you publish it.",
+        body: "Your archive is stored separately from your social accounts, helping you reduce dependence on platform policy changes, account restrictions, and unexpected takedowns.",
       },
       {
         /** VERBATIM. */
@@ -106,6 +165,4 @@ export const en = {
       },
     ],
   },
-} as const;
-
-export type Dictionary = typeof en;
+};

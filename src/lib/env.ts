@@ -21,12 +21,16 @@ export function isSupabaseConfigured(): boolean {
   return publicEnv.supabaseUrl !== "" && publicEnv.supabaseAnonKey !== "";
 }
 
+/**
+ * Billing is only "on" once the one paid tier has a real Paddle price behind
+ * it. PADDLE_CREATOR_PRICE_ID is an unset placeholder until the $4 pilot price
+ * is confirmed and created in Paddle, so this stays false and checkout 503s.
+ */
 export function isPaddleConfigured(): boolean {
   return (
     publicEnv.paddleClientToken !== "" &&
     (process.env.PADDLE_API_KEY ?? "") !== "" &&
-    (process.env.PADDLE_CREATOR_PRICE_ID ?? "") !== "" &&
-    (process.env.PADDLE_PRO_PRICE_ID ?? "") !== ""
+    (process.env.PADDLE_CREATOR_PRICE_ID ?? "") !== ""
   );
 }
 

@@ -3,10 +3,14 @@
  *
  * These are deliberately NOT the official logos: single-colour, redrawn, no
  * brand palette, no wordmarks. They are used nominatively — to say "the work
- * you publish over there" — and every surface that renders them also carries
- * the disclaimer in `en.marquee.disclaimer`. Nothing on the page states or
- * implies a partnership, integration or endorsement, and the product does not
- * connect to any of these platforms (see the FAQ).
+ * you publish over there".
+ *
+ * Every surface that renders them must carry a qualifier ON THAT SURFACE, not
+ * merely somewhere on the page: the marquee carries `en.marquee.disclaimer`,
+ * and the hero lock carries `en.marquee.heroNote`. A viewer can have either
+ * composition full-screen on a phone with the other one nowhere in sight, so
+ * "there is a disclaimer further down" is not coverage. Add a third surface,
+ * add a qualifier with it.
  *
  * Keep them monochrome. The moment one of these is drawn in its brand colours
  * it stops looking like a reference and starts looking like a badge.

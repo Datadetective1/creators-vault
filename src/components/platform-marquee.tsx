@@ -1,5 +1,8 @@
 import { PLATFORMS } from "@/components/platform-icons";
-import { en } from "@/lib/i18n/en";
+import { getDictionary } from "@/lib/i18n";
+
+/** Base-language copy. One lookup point, so a locale is a file, not a hunt. */
+const en = getDictionary();
 
 /**
  * The running banner Ravi sketched — with the claim removed.
@@ -47,7 +50,7 @@ export function PlatformMarquee() {
         </div>
       </div>
 
-      <p className="container-page mt-4 text-center text-[0.6875rem] leading-relaxed text-muted/80">
+      <p className="container-page mt-4 text-center text-xs leading-relaxed text-muted">
         {en.marquee.disclaimer}
       </p>
     </section>

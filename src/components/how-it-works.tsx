@@ -2,8 +2,11 @@ import Image from "next/image";
 
 import { MediaTile } from "@/components/media-tile";
 import { Reveal } from "@/components/reveal";
-import { en } from "@/lib/i18n/en";
+import { getDictionary } from "@/lib/i18n";
 import { CONTENT_WALL } from "@/lib/media";
+
+/** Base-language copy. One lookup point, so a locale is a file, not a hunt. */
+const en = getDictionary();
 
 /**
  * Upload. Secure. Retrieve.

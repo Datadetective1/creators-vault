@@ -8,10 +8,13 @@ import { PlatformMarquee } from "@/components/platform-marquee";
 import { Reveal } from "@/components/reveal";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteNav } from "@/components/site-nav";
-import { en } from "@/lib/i18n/en";
+import { getDictionary } from "@/lib/i18n";
 import { CONTENT_WALL } from "@/lib/media";
 import { PLANS } from "@/lib/plans";
 import { getCurrentUser } from "@/lib/supabase/server";
+
+/** Base-language copy. One lookup point, so a locale is a file, not a hunt. */
+const en = getDictionary();
 
 export default async function HomePage() {
   const user = await getCurrentUser();
@@ -255,32 +258,18 @@ function TrustIcon({ name }: { name: "lock" | "download" | "sliders" }) {
 /**
  * Pilot pricing.
  *
- * Ravi's concept: one paid tier, up to 100 GB, $4 a month — someone storing
- * 20 GB and someone storing 100 GB pay the same $4. This section presents that
- * concept alongside the Free tier.
+ * Two tiers, both read from `src/lib/plans.ts` — the same definitions the
+ * dashboard's plan picker and the server-side quota check use, so the price a
+ * visitor reads here cannot drift from the allowance they actually get. The
+ * retired 500 GB tier is gone from the model itself (migration 0006), not
+ * merely hidden from this section.
  *
- * Nothing about billing changed to render it. `src/lib/plans.ts`, the `plans`
- * table and the Paddle price ids are untouched, so entitlements and checkout
- * behave exactly as before. The 500 GB "Pro" tier still exists in code and in
- * the database but is no longer shown here, because Ravi's concept has no
- * third tier — that mismatch is deliberate and needs Amary's decision before
- * any entitlement is altered. The card links to sign-up, not to checkout.
+ * The price is pilot pricing and is NOT wired to billing: PADDLE_CREATOR_PRICE_ID
+ * is an unset placeholder, so `isPaddleConfigured()` is false and checkout
+ * refuses. Both cards link to sign-up, never to a checkout.
  */
-const PILOT_PRICE = {
-  amount: "$4",
-  period: "per month",
-  storage: "Up to 100 GB",
-  note: "20 GB or 100 GB — the price is the same.",
-  features: [
-    "Up to 100 GB of private storage",
-    "Upload video, photos, audio and documents",
-    "Download anything, any time",
-    "Private by default",
-  ],
-};
-
 function Pricing() {
-  const free = PLANS.free;
+  const { free, creator } = PLANS;
 
   return (
     <section id="pricing" className="scroll-mt-24 border-t border-ink-800/80 py-20 sm:py-28">
@@ -299,7 +288,7 @@ function Pricing() {
           <Reveal>
             <div className="h-full rounded-2xl border border-ink-700 bg-ink-850/70 p-6 transition-transform duration-300 hover:-translate-y-1">
               <h3 className="text-lg font-semibold text-cream-50">{free.name}</h3>
-              <p className="mt-1 text-sm text-muted">Protect your most important work</p>
+              <p className="mt-1 text-sm text-muted">{free.tagline}</p>
 
               <p className="mt-6 text-4xl font-semibold tracking-tight text-cream-50">
                 {free.storageLabel}
@@ -329,21 +318,21 @@ function Pricing() {
                 style={{ background: "radial-gradient(circle, rgba(255,176,31,0.7), transparent 70%)" }}
               />
 
-              <h3 className="relative text-lg font-semibold text-cream-50">
-                {PILOT_PRICE.storage}
-              </h3>
-              <p className="relative mt-1 text-sm text-muted">{PILOT_PRICE.note}</p>
+              <h3 className="relative text-lg font-semibold text-cream-50">{creator.name}</h3>
+              <p className="relative mt-1 text-sm text-muted">{creator.tagline}</p>
 
               <p className="relative mt-6 flex items-baseline gap-1.5">
                 <span className="text-gradient text-4xl font-semibold tracking-tight">
-                  {PILOT_PRICE.amount}
+                  {creator.priceLabel}
                 </span>
-                <span className="text-sm text-muted">{PILOT_PRICE.period}</span>
+                <span className="text-sm text-muted">{creator.pricePeriod}</span>
               </p>
-              <p className="relative text-sm text-muted">flat, however much you store</p>
+              <p className="relative text-sm text-muted">
+                {creator.storageLabel} — flat, however much you store
+              </p>
 
               <ul className="relative mt-6 space-y-2.5">
-                {PILOT_PRICE.features.map((feature) => (
+                {creator.features.map((feature) => (
                   <li key={feature} className="flex gap-2.5 text-sm text-cream-300">
                     <CheckIcon />
                     <span>{feature}</span>

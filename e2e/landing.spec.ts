@@ -28,10 +28,49 @@ test("landing page shows the full story", async ({ page }) => {
     await expect(page.getByRole("heading", { name: heading })).toBeVisible();
   }
 
-  // Pilot pricing: free tier plus the single up-to-100 GB paid tier.
+  // Pilot pricing: exactly two tiers, Free and Creator.
   await expect(page.getByText("5 GB", { exact: true }).first()).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Up to 100 GB" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Creator", exact: true })).toBeVisible();
   await expect(page.getByText("$4", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("Up to 100 GB", { exact: false }).first()).toBeVisible();
+});
+
+test("the retired 500 GB Pro tier is gone from the product", async ({ page }) => {
+  await page.goto("/");
+  const body = (await page.textContent("body")) ?? "";
+
+  // Not merely hidden from the pricing section — removed from the plan model,
+  // so it cannot reappear anywhere the definitions are read.
+  expect(body).not.toContain("500 GB");
+  expect(body).not.toMatch(/\bPro\b/);
+});
+
+test("Sovereign Security makes no unsupported legal claim", async ({ page }) => {
+  await page.goto("/");
+  const body = (await page.textContent("body")) ?? "";
+
+  // The heading is Ravi's and stays.
+  expect(body).toContain("Sovereign Security");
+
+  // The paragraph under it is the factual replacement, exactly.
+  expect(body).toContain(
+    "Keep an independent copy of your content outside the social platforms where you publish it.",
+  );
+  expect(body).toContain(
+    "Your archive is stored separately from your social accounts, helping you reduce dependence on platform policy changes, account restrictions, and unexpected takedowns.",
+  );
+
+  // None of the claims the product cannot substantiate may return.
+  for (const forbidden of [
+    "completely insulated",
+    "unpredictable domestic laws",
+    "regulatory overreach",
+    "off-shore",
+    "offshore",
+    "independent jurisdiction",
+  ]) {
+    expect(body.toLowerCase()).not.toContain(forbidden.toLowerCase());
+  }
 });
 
 test("hero carries Ravi's exact wording", async ({ page }) => {
@@ -78,9 +117,18 @@ test("the confusing duplicate three-step explainer is gone", async ({ page }) =>
   expect(body).not.toContain("Choose your valuable content");
   expect(body).not.toContain("Upload to your private vault");
 
-  // 01 / 02 / 03 labels match the hero's three words.
-  for (const label of ["01", "02", "03"]) {
-    expect(body).toContain(label);
+  // 01 / 02 / 03 paired with the right words, in the right order — a digit
+  // appearing anywhere on the page is not evidence the labels survived.
+  const cards = page.locator("#how-it-works article");
+  await expect(cards).toHaveCount(3);
+  for (const [index, [number, label]] of [
+    ["01", "Upload"],
+    ["02", "Secure"],
+    ["03", "Retrieve"],
+  ].entries()) {
+    const card = cards.nth(index);
+    await expect(card).toContainText(number!);
+    await expect(card.getByRole("heading")).toHaveText(label!);
   }
 });
 

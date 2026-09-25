@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import { usePrefersReducedMotion } from "@/lib/use-reduced-motion";
+import { useIsHydrated, usePrefersReducedMotion } from "@/lib/use-reduced-motion";
 
 /**
  * Ravi's three lines, cycling.
@@ -15,13 +15,18 @@ import { usePrefersReducedMotion } from "@/lib/use-reduced-motion";
  * that.
  *
  * Under prefers-reduced-motion every line sits at full emphasis and nothing
- * moves.
+ * moves. Same before hydration: the cycle is the only thing that ever lifts a
+ * dimmed line, so shipping the dim state in the server markup would leave two
+ * of the three lines permanently faint for a visitor with JavaScript off or a
+ * bundle that never arrived. All three start lit and dimming begins only once
+ * the client is actually driving.
  */
 
 const CYCLE_MS = 1900;
 
 export function ContentEquation({ lines }: { lines: readonly string[] }) {
   const reduced = usePrefersReducedMotion();
+  const hydrated = useIsHydrated();
   const [active, setActive] = useState(0);
 
   useEffect(() => {
@@ -36,14 +41,14 @@ export function ContentEquation({ lines }: { lines: readonly string[] }) {
   return (
     <span className="block">
       {lines.map((line, index) => {
-        const lit = reduced || index === active;
+        const lit = reduced || !hydrated || index === active;
         return (
           <span
             key={line}
-            className={`block transition-[opacity,transform,filter] duration-700 ease-out ${
-              lit
-                ? "text-gradient opacity-100 [transform:translateZ(0)]"
-                : "text-cream-50/35 opacity-60 blur-[0.4px]"
+            className={`block transition-[opacity,transform] duration-700 ease-out ${
+              // The dim state still has to clear 3:1 as large text — it is real
+              // copy, not decoration. A single alpha, no stacked opacity/blur.
+              lit ? "text-gradient [transform:translateZ(0)]" : "text-cream-50/70"
             }`}
             style={lit ? undefined : { transform: "scale(0.985)" }}
           >

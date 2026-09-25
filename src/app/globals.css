@@ -264,11 +264,6 @@ html[data-js="1"] .reveal[data-revealed="true"] {
   70% { transform: scale(1.5); opacity: 0; }
   100% { transform: scale(1.5); opacity: 0; }
 }
-@keyframes sweep {
-  0% { transform: translateX(-120%); }
-  100% { transform: translateX(220%); }
-}
-
 /* --- social content -> lock -------------------------------------------- */
 /* Each platform carries its own unit-circle --cx/--cy; the shared --ring-r
    scales the whole ring, so one radius drives every position. */
@@ -308,7 +303,6 @@ html[data-js="1"] .reveal[data-revealed="true"] {
 .animate-drift { animation: drift 7s ease-in-out infinite; }
 .animate-drift-slow { animation: drift-slow 11s ease-in-out infinite; }
 .animate-pulse-ring { animation: pulse-ring 2.8s ease-out infinite; }
-.animate-sweep { animation: sweep 2.6s ease-in-out infinite; }
 .animate-platform-inflow { animation: platform-inflow 6s ease-in-out infinite; }
 .animate-lock-absorb { animation: lock-absorb 1.2s ease-out infinite; }
 .animate-lock-ring { animation: lock-ring 1.2s ease-out infinite; }

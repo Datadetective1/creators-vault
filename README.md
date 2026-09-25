@@ -50,9 +50,17 @@ than erroring.
 ### 2. Paddle
 
 1. Create a **sandbox** account at <https://sandbox-vendors.paddle.com>.
-2. **Catalog → Products**: create a "Creator" product and a "Pro" product, each
-   with a recurring monthly price. Copy each price id (`pri_...`) into
-   `PADDLE_CREATOR_PRICE_ID` and `PADDLE_PRO_PRICE_ID`.
+2. **Catalog → Products**: create one "Creator" product with a recurring
+   monthly price, and copy its price id (`pri_...`) into
+   `PADDLE_CREATOR_PRICE_ID`.
+
+   **The amount must match what the site advertises.** `PLANS.creator.priceLabel`
+   in `src/lib/plans.ts` is a display string — the app never reads an amount back
+   from Paddle, so a price created at a different figure would be charged silently
+   while the landing page still quoted the old one. Pilot pricing is **$4 / month
+   for up to 100 GB**; if that changes, change both. Leaving
+   `PADDLE_CREATOR_PRICE_ID` empty keeps billing off entirely, which is the
+   intended state until the price is confirmed.
 3. **Developer Tools → Authentication**: create an API key → `PADDLE_API_KEY`.
 4. **Developer Tools → Client-side tokens**: create one →
    `NEXT_PUBLIC_PADDLE_CLIENT_TOKEN`.

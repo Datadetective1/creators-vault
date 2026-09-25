@@ -105,10 +105,19 @@ export function PlatformLock({ className = "" }: { className?: string }) {
         </span>
       </div>
 
-      {/* What the picture means, for anyone who cannot see it. */}
+      {/*
+        What the picture means, for anyone who cannot see it.
+
+        Worded carefully: the animation shows marks converging on the lock,
+        which reads as an import. The product does not import — the creator
+        uploads their own copies — so the description says whose copies these
+        are and states the denial here rather than leaving it to the FAQ three
+        sections below.
+      */}
       <p className="sr-only">
-        Content from Instagram, Snapchat, Telegram, YouTube and TikTok moving into a
-        lock, where it is stored securely.
+        Work a creator publishes on Instagram, Snapchat, Telegram, YouTube and TikTok,
+        kept as their own copy in a lock they control. Files are uploaded by the
+        creator; Creator Vault does not connect to these platforms.
       </p>
     </div>
   );

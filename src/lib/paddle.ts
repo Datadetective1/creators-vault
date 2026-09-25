@@ -30,15 +30,19 @@ export { isPaddleConfigured };
 /** Paddle price id for a paid tier, or null when not configured. */
 export function priceIdFor(tier: PlanTier): string | null {
   if (tier === "creator") return process.env.PADDLE_CREATOR_PRICE_ID || null;
-  if (tier === "pro") return process.env.PADDLE_PRO_PRICE_ID || null;
   return null;
 }
 
-/** Reverse lookup: which tier does this Paddle price grant? */
+/**
+ * Reverse lookup: which tier does this Paddle price grant?
+ *
+ * Only the creator price grants anything. A subscription created against the
+ * retired pro price — none exist, billing was never switched on — resolves to
+ * null here, which the webhook treats as no entitlement rather than guessing.
+ */
 export function tierForPriceId(priceId: string | null | undefined): PlanTier | null {
   if (!priceId) return null;
   if (priceId === process.env.PADDLE_CREATOR_PRICE_ID) return "creator";
-  if (priceId === process.env.PADDLE_PRO_PRICE_ID) return "pro";
   return null;
 }
 

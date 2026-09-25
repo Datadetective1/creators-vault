@@ -5,8 +5,11 @@ import { HeroBackdrop } from "@/components/hero-backdrop";
 import { MediaTile } from "@/components/media-tile";
 import { PlatformLock } from "@/components/platform-lock";
 import { Reveal } from "@/components/reveal";
-import { en } from "@/lib/i18n/en";
+import { getDictionary } from "@/lib/i18n";
 import { HERO_TILES } from "@/lib/media";
+
+/** Base-language copy. One lookup point, so a locale is a file, not a hunt. */
+const en = getDictionary();
 
 /**
  * Split hero: the promise on the left, the creator's own content on the right.
@@ -204,7 +207,18 @@ function HeroCollage() {
       </div>
 
       {/* social content -> lock */}
-      <PlatformLock />
+      <div>
+        <PlatformLock />
+        {/*
+          The qualifier lives with the picture, not three sections below it. The
+          animation shows platform marks converging on the lock, which reads as
+          an import; on a phone the whole composition can fill the screen with
+          the marquee's disclaimer nowhere in sight.
+        */}
+        <p className="mx-auto mt-1 max-w-xs text-balance text-center text-xs leading-relaxed text-muted">
+          {en.marquee.heroNote}
+        </p>
+      </div>
     </div>
   );
 }

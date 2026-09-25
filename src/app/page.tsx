@@ -8,6 +8,7 @@ import { PlatformMarquee } from "@/components/platform-marquee";
 import { Reveal } from "@/components/reveal";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteNav } from "@/components/site-nav";
+import { isPaddleConfigured } from "@/lib/env";
 import { getDictionary } from "@/lib/i18n";
 import { CONTENT_WALL } from "@/lib/media";
 import { PLANS } from "@/lib/plans";
@@ -267,9 +268,16 @@ function TrustIcon({ name }: { name: "lock" | "download" | "sliders" }) {
  * The price is pilot pricing and is NOT wired to billing: PADDLE_CREATOR_PRICE_ID
  * is an unset placeholder, so `isPaddleConfigured()` is false and checkout
  * refuses. Both cards link to sign-up, never to a checkout.
+ *
+ * "Nothing is charged yet" is read off that same switch rather than asserted.
+ * A standing promise on a public page would quietly become a lie the moment
+ * somebody sets a real price id — the billing page two clicks away opens a live
+ * Paddle overlay as soon as it is configured. This way the claim and the
+ * behaviour cannot disagree.
  */
 function Pricing() {
   const { free, creator } = PLANS;
+  const billingLive = isPaddleConfigured();
 
   return (
     <section id="pricing" className="scroll-mt-24 border-t border-ink-800/80 py-20 sm:py-28">
@@ -279,7 +287,9 @@ function Pricing() {
             <p className="eyebrow justify-center">Pricing</p>
             <h2 className="section-heading mt-3">Start free. One simple paid plan.</h2>
             <p className="prose-muted mt-4">
-              Pilot pricing, while we finish building. Nothing is charged yet.
+              {billingLive
+                ? "Pilot pricing. Change plan at any time."
+                : "Pilot pricing, while we finish building. Nothing is charged yet."}
             </p>
           </div>
         </Reveal>
@@ -348,8 +358,9 @@ function Pricing() {
         </div>
 
         <p className="mx-auto mt-8 max-w-2xl text-center text-sm text-muted">
-          Pilot pricing is not final and no card is charged today. Paid plans will be billed
-          through Paddle, our payment provider, with the price confirmed at checkout.
+          {billingLive
+            ? "Pilot pricing is not final. Paid plans are billed through Paddle, our payment provider, with the price confirmed at checkout."
+            : "Pilot pricing is not final and no card is charged today. Paid plans will be billed through Paddle, our payment provider, with the price confirmed at checkout."}
         </p>
       </div>
     </section>

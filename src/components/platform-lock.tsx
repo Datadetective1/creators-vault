@@ -78,12 +78,17 @@ export function PlatformLock({ className = "" }: { className?: string }) {
             } as React.CSSProperties
           }
         >
+          {/*
+            aria-hidden: the summary below names all five platforms in a
+            sentence. Labelling each chip as well makes a screen reader read the
+            list twice over, then a third time at the marquee.
+          */}
           <span
+            aria-hidden="true"
             className="glass flex items-center justify-center rounded-2xl text-cream-50 shadow-lg shadow-black/40"
             style={{ height: "3.25rem", width: "3.25rem" }}
           >
             <platform.Icon className="h-5 w-5" />
-            <span className="sr-only">{platform.name}</span>
           </span>
         </div>
       ))}

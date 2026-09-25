@@ -303,7 +303,13 @@ html[data-js="1"] .reveal[data-revealed="true"] {
 .animate-drift { animation: drift 7s ease-in-out infinite; }
 .animate-drift-slow { animation: drift-slow 11s ease-in-out infinite; }
 .animate-pulse-ring { animation: pulse-ring 2.8s ease-out infinite; }
-.animate-platform-inflow { animation: platform-inflow 6s ease-in-out infinite; }
+/* `backwards` matters: without it each chip renders at its own computed
+   transform (none — i.e. the ring centre, on top of the lock) for the whole of
+   its animation-delay, up to 4.8s of five chips stacked on the mark. */
+.animate-platform-inflow {
+  animation: platform-inflow 6s ease-in-out infinite;
+  animation-fill-mode: backwards;
+}
 .animate-lock-absorb { animation: lock-absorb 1.2s ease-out infinite; }
 .animate-lock-ring { animation: lock-ring 1.2s ease-out infinite; }
 

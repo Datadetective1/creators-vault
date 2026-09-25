@@ -332,7 +332,10 @@ function Pricing() {
               <p className="relative mt-1 text-sm text-muted">{creator.tagline}</p>
 
               <p className="relative mt-6 flex items-baseline gap-1.5">
-                <span className="text-gradient text-4xl font-semibold tracking-tight">
+                {/* Solid, not text-gradient: across two glyphs the ramp puts
+                    a gold "$" beside a magenta "4". plan-picker.tsx renders the
+                    same priceLabel in gold-400. */}
+                <span className="text-4xl font-semibold tracking-tight text-gold-400">
                   {creator.priceLabel}
                 </span>
                 <span className="text-sm text-muted">{creator.pricePeriod}</span>

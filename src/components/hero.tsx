@@ -36,9 +36,18 @@ export function Hero({ signedIn }: { signedIn: boolean }) {
          * the first screen is visual rather than a wall of text. On large
          * screens explicit grid placement restores the classic split: all copy
          * on the left, media on the right.
+         *
+         * `self-end` / `self-start` on the two left cells matter: the media
+         * column spans both rows and is now much taller than the copy (collage
+         * plus the platform lock), so the grid hands each left row a large
+         * surplus. With `items-center` inheriting, both cells centre inside
+         * that surplus and open a ~270px hole between the headline and the
+         * supporting line — enough to push Upload / Secure / Retrieve anytime
+         * below the fold on a 1440x900 laptop. Hugging the shared edge keeps
+         * the copy together.
          */}
         <div className="grid gap-8 lg:grid-cols-[1.05fr_1fr] lg:items-center lg:gap-10">
-          <div className="text-center lg:col-start-1 lg:row-start-1 lg:text-left">
+          <div className="text-center lg:col-start-1 lg:row-start-1 lg:self-end lg:text-left">
             <Reveal>
               <p className="eyebrow justify-center lg:justify-start">
                 <span className="relative flex h-1.5 w-1.5">
@@ -60,7 +69,7 @@ export function Hero({ signedIn }: { signedIn: boolean }) {
             <HeroCollage />
           </Reveal>
 
-          <div className="text-center lg:col-start-1 lg:row-start-2 lg:text-left">
+          <div className="text-center lg:col-start-1 lg:row-start-2 lg:self-start lg:text-left">
             <Reveal delay={140}>
               <p className="mx-auto mt-2 max-w-lg text-balance text-lg font-medium leading-snug text-cream-50 sm:text-xl lg:mx-0">
                 {en.hero.support}

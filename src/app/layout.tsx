@@ -3,16 +3,17 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
+  // "Creator Vault" is a PLACEHOLDER name — see src/components/brand.tsx.
   title: {
-    default: "Creator Vault — Protect the work behind your brand",
+    default: "Creator Vault — Secure your content from platform censorship",
     template: "%s · Creator Vault",
   },
   description:
-    "Store an independent copy of your most valuable videos, photos and creator assets. Access them whenever you need them, even if something happens to your social account.",
+    "Upload, secure and retrieve your own copy of the videos, photos and files your business is built on. Secure your content from platform censorship and shifting regulations.",
   openGraph: {
-    title: "Creator Vault — Protect the work behind your brand",
+    title: "Creator Vault — Secure your content from platform censorship",
     description:
-      "Keep a private, independent copy of the content your business depends on.",
+      "Upload. Secure. Retrieve anytime. Keep a private, independent copy of the content your business depends on.",
     type: "website",
   },
   robots: { index: true, follow: true },

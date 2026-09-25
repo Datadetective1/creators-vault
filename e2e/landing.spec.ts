@@ -8,26 +8,93 @@ import { expect, test } from "@playwright/test";
 test("landing page shows the full story", async ({ page }) => {
   await page.goto("/");
 
-  await expect(page.getByRole("heading", { level: 1 })).toContainText(
-    "Your content is your business.",
-  );
-  await expect(page.getByText("Protect the work behind your brand.").first()).toBeVisible();
+  // Ravi's three lines are all present in the h1 at once — the animation only
+  // changes which one is emphasised, so none of them may be missing from the
+  // DOM at any point.
+  const h1 = page.getByRole("heading", { level: 1 });
+  for (const line of ["Content = $$$", "Content = Time", "Content = Brand"]) {
+    await expect(h1).toContainText(line);
+  }
 
   // Every section the pilot needs in order to explain itself.
   for (const heading of [
-    "Most creators have exactly one copy of their best work.",
-    "Three steps. No technical setup.",
+    "Why your business is at risk right now:",
+    "The Solution",
+    "Upload. Secure. Retrieve.",
     "All of this can live in your vault.",
-    "Start free. Upgrade when you outgrow it.",
+    "Start free. One simple paid plan.",
     "Questions creators ask first.",
   ]) {
     await expect(page.getByRole("heading", { name: heading })).toBeVisible();
   }
 
-  // All three plans are presented.
-  for (const plan of ["5 GB", "100 GB", "500 GB"]) {
-    await expect(page.getByText(plan, { exact: true }).first()).toBeVisible();
+  // Pilot pricing: free tier plus the single up-to-100 GB paid tier.
+  await expect(page.getByText("5 GB", { exact: true }).first()).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Up to 100 GB" })).toBeVisible();
+  await expect(page.getByText("$4", { exact: true }).first()).toBeVisible();
+});
+
+test("hero carries Ravi's exact wording", async ({ page }) => {
+  await page.goto("/");
+
+  await expect(
+    page.getByText(
+      "Secure your content from platform censorship and shifting regulations",
+      { exact: true },
+    ),
+  ).toBeVisible();
+
+  // Upload -> Secure -> Retrieve anytime, in order, as one process.
+  const steps = page.locator("ol li").filter({ hasText: /^(Upload|Secure|Retrieve anytime)$/ });
+  await expect(steps).toHaveCount(3);
+  await expect(steps.nth(0)).toHaveText("Upload");
+  await expect(steps.nth(1)).toHaveText("Secure");
+  await expect(steps.nth(2)).toHaveText("Retrieve anytime");
+});
+
+test("the risk and solution sections use the reviewed copy", async ({ page }) => {
+  await page.goto("/");
+  const body = (await page.textContent("body")) ?? "";
+
+  for (const line of [
+    "Your content is a vital business asset.",
+    "You surrender exclusive ownership upon upload.",
+    "Platform censorship and regulations can freeze you out instantly.",
+    "You are one glitch away from losing everything.",
+    "Sovereign Security",
+    "On-Demand Freedom",
+  ]) {
+    expect(body).toContain(line);
   }
+});
+
+test("the confusing duplicate three-step explainer is gone", async ({ page }) => {
+  await page.goto("/");
+  const body = (await page.textContent("body")) ?? "";
+
+  // The old headline and the phone-to-vault diagram it sat above both went;
+  // the page must explain the flow exactly once.
+  expect(body).not.toContain("Three steps. No technical setup.");
+  expect(body).not.toContain("Choose your valuable content");
+  expect(body).not.toContain("Upload to your private vault");
+
+  // 01 / 02 / 03 labels match the hero's three words.
+  for (const label of ["01", "02", "03"]) {
+    expect(body).toContain(label);
+  }
+});
+
+test("no adoption metric is claimed anywhere", async ({ page }) => {
+  await page.goto("/");
+  const body = ((await page.textContent("body")) ?? "").toLowerCase();
+
+  // We have no verified users. Nothing may imply otherwise.
+  expect(body).not.toContain("thousands of");
+  expect(body).not.toMatch(/join \d/);
+  expect(body).not.toMatch(/\d+[,\d]*\+? (creators|users|customers) (already|trust|use)/);
+
+  // The platform strip must disclaim affiliation rather than imply it.
+  expect(body).toContain("not affiliated with, endorsed by, or partnered with");
 });
 
 test("the page makes no claim to import from social platforms", async ({ page }) => {

@@ -4,11 +4,13 @@ import { ContentWall } from "@/components/content-wall";
 import { Hero } from "@/components/hero";
 import { HowItWorks } from "@/components/how-it-works";
 import { MediaTile } from "@/components/media-tile";
+import { PlatformMarquee } from "@/components/platform-marquee";
 import { Reveal } from "@/components/reveal";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteNav } from "@/components/site-nav";
+import { en } from "@/lib/i18n/en";
 import { CONTENT_WALL } from "@/lib/media";
-import { PLAN_ORDER, PLANS } from "@/lib/plans";
+import { PLANS } from "@/lib/plans";
 import { getCurrentUser } from "@/lib/supabase/server";
 
 export default async function HomePage() {
@@ -20,7 +22,9 @@ export default async function HomePage() {
       <SiteNav signedIn={signedIn} />
       <main id="main">
         <Hero signedIn={signedIn} />
-        <WhySection />
+        <PlatformMarquee />
+        <RiskSection />
+        <SolutionSection />
         <HowItWorks />
         <ContentWall />
         <TrustSection />
@@ -34,55 +38,40 @@ export default async function HomePage() {
 }
 
 /* -------------------------------------------------------------------------- */
-/* Why an independent copy                                                    */
+/* The risk                                                                   */
 /* -------------------------------------------------------------------------- */
 
-const REASONS = [
-  {
-    title: "Accounts can be lost",
-    body: "Hacked, locked, or recovered slowly. If your only copy lives inside an app you do not control, losing access loses the archive too.",
-  },
-  {
-    title: "Files get deleted by accident",
-    body: "A cleared phone, a wiped card, one wrong tap. Originals are the first thing to go and the hardest to recreate.",
-  },
-  {
-    title: "Devices break and get stolen",
-    body: "Phones and laptops fail. If the raw files existed in one place, one failure takes years of work with them.",
-  },
-  {
-    title: "Your work outlives any platform",
-    body: "Apps change, features disappear, audiences move. Your own copy belongs to your business.",
-  },
-];
+/**
+ * Ravi's wording, verbatim, from `en.risk`. The lead sentence of each point is
+ * emphasised and the rest follows in the same paragraph — that is how he wrote
+ * them, and splitting them into title/body pairs would change the reading.
+ */
+function RiskSection() {
+  const { eyebrow, heading, points } = en.risk;
 
-function WhySection() {
   return (
     <section className="border-t border-ink-800/80 py-20 sm:py-28">
       <div className="container-page">
         <div className="grid gap-12 lg:grid-cols-[1fr_1.05fr] lg:items-center lg:gap-16">
           <Reveal>
             <div>
-              <p className="eyebrow">Why it matters</p>
-              <h2 className="section-heading mt-3">
-                Most creators have exactly one copy of their best work.
-              </h2>
-              <p className="prose-muted mt-4">
-                The footage, photos and files you built an audience on are business assets. They
-                belong somewhere you control.
-              </p>
+              <p className="eyebrow">{eyebrow}</p>
+              <h2 className="section-heading mt-3">{heading}</h2>
 
-              <dl className="mt-8 grid gap-x-6 gap-y-6 sm:grid-cols-2">
-                {REASONS.map((reason) => (
-                  <div key={reason.title}>
-                    <dt className="flex items-center gap-2 text-sm font-semibold text-cream-50">
-                      <span className="h-1.5 w-1.5 rounded-full bg-gold-400" aria-hidden="true" />
-                      {reason.title}
-                    </dt>
-                    <dd className="mt-1.5 text-sm leading-relaxed text-muted">{reason.body}</dd>
-                  </div>
+              <ul className="mt-8 space-y-5">
+                {points.map((point) => (
+                  <li key={point.lead} className="flex gap-3">
+                    <span
+                      aria-hidden="true"
+                      className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-gold-400"
+                    />
+                    <p className="text-sm leading-relaxed text-muted">
+                      <strong className="font-semibold text-cream-50">{point.lead}</strong>{" "}
+                      {point.body}
+                    </p>
+                  </li>
                 ))}
-              </dl>
+              </ul>
             </div>
           </Reveal>
 
@@ -101,6 +90,90 @@ function WhySection() {
         </div>
       </div>
     </section>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* The solution                                                               */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Ravi's wording, verbatim, from `en.solution`.
+ *
+ * NOTE FOR WHOEVER SHIPS THIS PUBLICLY: "Sovereign Security" asserts hosting
+ * in an independent, off-shore jurisdiction insulated from domestic law. The
+ * pilot's storage is a single Supabase project, and README.md recommends the
+ * Mumbai (ap-south-1) region for Indian creators — i.e. domestic Indian
+ * infrastructure, which is close to the opposite of the claim. The copy is
+ * reproduced here as dictated and must be confirmed against the real
+ * deployment region and reviewed legally before launch.
+ */
+function SolutionSection() {
+  const { heading, blocks } = en.solution;
+
+  return (
+    <section id="the-solution" className="scroll-mt-24 border-t border-ink-800/80 py-20 sm:py-28">
+      <div className="container-page">
+        <Reveal>
+          <h2 className="section-heading max-w-2xl">{heading}</h2>
+        </Reveal>
+
+        <div className="mt-10 grid gap-4 md:grid-cols-2">
+          {blocks.map((block, index) => (
+            <Reveal key={block.title} delay={index * 90}>
+              <div className="edge-glow h-full rounded-2xl border border-ink-700 bg-ink-850/70 p-6 sm:p-7">
+                <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-ink-800 text-gold-400">
+                  {index === 0 ? <ShieldIcon /> : <ReclaimIcon />}
+                </span>
+                <h3 className="mt-4 text-lg font-semibold text-cream-50">{block.title}</h3>
+                <p className="mt-3 text-sm leading-relaxed text-cream-300">{block.lead}</p>
+                <p className="mt-2 text-sm leading-relaxed text-muted">{block.body}</p>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ShieldIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden="true">
+      <path
+        d="M12 3.2l7 2.6v5.4c0 4.2-2.9 7.6-7 9.6-4.1-2-7-5.4-7-9.6V5.8l7-2.6z"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M9.2 12.2l2 2 3.6-4"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function ReclaimIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden="true">
+      <path
+        d="M12 4.5v10m0 0l-3.5-3.5M12 14.5l3.5-3.5"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M4.8 15.5v2.2a1.8 1.8 0 001.8 1.8h10.8a1.8 1.8 0 001.8-1.8v-2.2"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+      />
+    </svg>
   );
 }
 
@@ -179,81 +252,115 @@ function TrustIcon({ name }: { name: "lock" | "download" | "sliders" }) {
 /* Pricing                                                                    */
 /* -------------------------------------------------------------------------- */
 
-const PLAN_CONTEXT: Record<string, string> = {
-  free: "Protect your most important work",
-  creator: "For active creators",
-  pro: "For creators with growing libraries",
+/**
+ * Pilot pricing.
+ *
+ * Ravi's concept: one paid tier, up to 100 GB, $4 a month — someone storing
+ * 20 GB and someone storing 100 GB pay the same $4. This section presents that
+ * concept alongside the Free tier.
+ *
+ * Nothing about billing changed to render it. `src/lib/plans.ts`, the `plans`
+ * table and the Paddle price ids are untouched, so entitlements and checkout
+ * behave exactly as before. The 500 GB "Pro" tier still exists in code and in
+ * the database but is no longer shown here, because Ravi's concept has no
+ * third tier — that mismatch is deliberate and needs Amary's decision before
+ * any entitlement is altered. The card links to sign-up, not to checkout.
+ */
+const PILOT_PRICE = {
+  amount: "$4",
+  period: "per month",
+  storage: "Up to 100 GB",
+  note: "20 GB or 100 GB — the price is the same.",
+  features: [
+    "Up to 100 GB of private storage",
+    "Upload video, photos, audio and documents",
+    "Download anything, any time",
+    "Private by default",
+  ],
 };
 
 function Pricing() {
+  const free = PLANS.free;
+
   return (
     <section id="pricing" className="scroll-mt-24 border-t border-ink-800/80 py-20 sm:py-28">
       <div className="container-page">
         <Reveal>
           <div className="mx-auto max-w-2xl text-center">
             <p className="eyebrow justify-center">Pricing</p>
-            <h2 className="section-heading mt-3">Start free. Upgrade when you outgrow it.</h2>
-            <p className="prose-muted mt-4">Change plan at any time.</p>
+            <h2 className="section-heading mt-3">Start free. One simple paid plan.</h2>
+            <p className="prose-muted mt-4">
+              Pilot pricing, while we finish building. Nothing is charged yet.
+            </p>
           </div>
         </Reveal>
 
-        <div className="mx-auto mt-12 grid max-w-5xl gap-4 lg:grid-cols-3">
-          {PLAN_ORDER.map((tier, index) => {
-            const plan = PLANS[tier];
-            const featured = tier === "creator";
-            return (
-              <Reveal key={tier} delay={index * 90}>
-                <div
-                  className={`relative h-full overflow-hidden rounded-2xl p-6 transition-transform duration-300 hover:-translate-y-1 ${
-                    featured
-                      ? "border-2 border-gold-400/70 bg-ink-850"
-                      : "border border-ink-700 bg-ink-850/70"
-                  }`}
-                >
-                  {featured && (
-                    <div
-                      aria-hidden="true"
-                      className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full opacity-40 blur-3xl"
-                      style={{ background: "radial-gradient(circle, rgba(255,176,31,0.7), transparent 70%)" }}
-                    />
-                  )}
+        <div className="mx-auto mt-12 grid max-w-3xl gap-4 md:grid-cols-2">
+          <Reveal>
+            <div className="h-full rounded-2xl border border-ink-700 bg-ink-850/70 p-6 transition-transform duration-300 hover:-translate-y-1">
+              <h3 className="text-lg font-semibold text-cream-50">{free.name}</h3>
+              <p className="mt-1 text-sm text-muted">Protect your most important work</p>
 
-                  <h3 className="relative text-lg font-semibold text-cream-50">{plan.name}</h3>
-                  <p className="relative mt-1 text-sm text-muted">{PLAN_CONTEXT[tier]}</p>
+              <p className="mt-6 text-4xl font-semibold tracking-tight text-cream-50">
+                {free.storageLabel}
+              </p>
+              <p className="text-sm text-muted">of private storage</p>
 
-                  <p
-                    className={`relative mt-6 text-4xl font-semibold tracking-tight ${
-                      featured ? "text-gradient" : "text-cream-50"
-                    }`}
-                  >
-                    {plan.storageLabel}
-                  </p>
-                  <p className="relative text-sm text-muted">of private storage</p>
+              <ul className="mt-6 space-y-2.5">
+                {free.features.map((feature) => (
+                  <li key={feature} className="flex gap-2.5 text-sm text-cream-300">
+                    <CheckIcon />
+                    <span>{feature}</span>
+                  </li>
+                ))}
+              </ul>
 
-                  <ul className="relative mt-6 space-y-2.5">
-                    {plan.features.map((feature) => (
-                      <li key={feature} className="flex gap-2.5 text-sm text-cream-300">
-                        <CheckIcon />
-                        <span>{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
+              <Link href="/signup" className="btn-secondary mt-7 w-full">
+                Start free
+              </Link>
+            </div>
+          </Reveal>
 
-                  <Link
-                    href="/signup"
-                    className={featured ? "btn-primary relative mt-7 w-full" : "btn-secondary relative mt-7 w-full"}
-                  >
-                    {tier === "free" ? "Start free" : `Choose ${plan.name}`}
-                  </Link>
-                </div>
-              </Reveal>
-            );
-          })}
+          <Reveal delay={90}>
+            <div className="relative h-full overflow-hidden rounded-2xl border-2 border-gold-400/70 bg-ink-850 p-6 transition-transform duration-300 hover:-translate-y-1">
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full opacity-40 blur-3xl"
+                style={{ background: "radial-gradient(circle, rgba(255,176,31,0.7), transparent 70%)" }}
+              />
+
+              <h3 className="relative text-lg font-semibold text-cream-50">
+                {PILOT_PRICE.storage}
+              </h3>
+              <p className="relative mt-1 text-sm text-muted">{PILOT_PRICE.note}</p>
+
+              <p className="relative mt-6 flex items-baseline gap-1.5">
+                <span className="text-gradient text-4xl font-semibold tracking-tight">
+                  {PILOT_PRICE.amount}
+                </span>
+                <span className="text-sm text-muted">{PILOT_PRICE.period}</span>
+              </p>
+              <p className="relative text-sm text-muted">flat, however much you store</p>
+
+              <ul className="relative mt-6 space-y-2.5">
+                {PILOT_PRICE.features.map((feature) => (
+                  <li key={feature} className="flex gap-2.5 text-sm text-cream-300">
+                    <CheckIcon />
+                    <span>{feature}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <Link href="/signup" className="btn-primary relative mt-7 w-full">
+                Join the pilot
+              </Link>
+            </div>
+          </Reveal>
         </div>
 
         <p className="mx-auto mt-8 max-w-2xl text-center text-sm text-muted">
-          Paid plans are billed through Paddle, our payment provider. Pricing is confirmed at
-          checkout.
+          Pilot pricing is not final and no card is charged today. Paid plans will be billed
+          through Paddle, our payment provider, with the price confirmed at checkout.
         </p>
       </div>
     </section>

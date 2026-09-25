@@ -313,7 +313,9 @@ html[data-js="1"] .reveal[data-revealed="true"] {
 .animate-lock-absorb { animation: lock-absorb 1.2s ease-out infinite; }
 .animate-lock-ring { animation: lock-ring 1.2s ease-out infinite; }
 
-/* Two identical halves translated by exactly -50% loop seamlessly. */
+/* Seamless only while half width == trackWidth / 2 — i.e. the gutter between
+   repetitions lives inside each half, never on the track. Equal half widths
+   alone do not prove it. */
 .marquee-track { animation: marquee-scroll 26s linear infinite; }
 .marquee-mask {
   mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);

@@ -32,6 +32,12 @@ export function SiteFooter() {
 
             <FooterColumn title="Support">
               <FooterLink href="/#faq">Help</FooterLink>
+              {LEGAL.supportEmail && (
+                <FooterLink href={`mailto:${LEGAL.supportEmail}`}>Email support</FooterLink>
+              )}
+              {LEGAL.securityEmail && (
+                <FooterLink href={`mailto:${LEGAL.securityEmail}`}>Report a security issue</FooterLink>
+              )}
             </FooterColumn>
 
             <FooterColumn title="Legal">
@@ -66,11 +72,18 @@ function FooterColumn({ title, children }: { title: string; children: React.Reac
 }
 
 function FooterLink({ href, children }: { href: string; children: React.ReactNode }) {
+  const className = "text-sm text-muted transition-colors hover:text-cream-50";
   return (
     <li>
-      <Link href={href} className="text-sm text-muted transition-colors hover:text-cream-50">
-        {children}
-      </Link>
+      {href.startsWith("mailto:") ? (
+        <a href={href} className={className}>
+          {children}
+        </a>
+      ) : (
+        <Link href={href} className={className}>
+          {children}
+        </Link>
+      )}
     </li>
   );
 }

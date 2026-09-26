@@ -51,13 +51,9 @@ test.describe("policies", () => {
       await expect(page).toHaveURL(new RegExp(`${policy.href}$`));
       await expect(page.getByRole("heading", { level: 1, name: policy.heading })).toBeVisible();
 
-      // No invented contact details: no creatorlock.app inbox accepts mail yet,
-      // so the page must not name one; the placeholder says what is missing.
+      // Every business detail is now confirmed: no placeholder may remain.
       const body = (await page.textContent("main")) ?? "";
-      expect(body).not.toMatch(/@creatorlock\.app/);
-      await expect(
-        page.getByText("[To be confirmed: support and privacy contact email]").first(),
-      ).toBeVisible();
+      expect(body).not.toContain("[To be confirmed");
     });
   }
 
@@ -90,6 +86,35 @@ test.describe("policies", () => {
 
     await page.goto("/refunds");
     expect((await page.textContent("main")) ?? "").not.toContain("MacArthur");
+  });
+
+  test("each policy routes people to the right confirmed inbox", async ({ page }) => {
+    const expectMail = async (address: string) =>
+      expect(page.locator(`main a[href="mailto:${address}"]`).first()).toBeVisible();
+
+    await page.goto("/terms");
+    await expectMail("support@creatorlock.app");
+    await expectMail("legal@creatorlock.app");
+    await expectMail("billing@creatorlock.app");
+
+    await page.goto("/privacy");
+    await expectMail("privacy@creatorlock.app");
+    await expectMail("security@creatorlock.app");
+
+    await page.goto("/refunds");
+    await expectMail("refunds@creatorlock.app");
+    await expectMail("billing@creatorlock.app");
+
+    await page.goto("/");
+    const footer = page.locator("footer");
+    await expect(footer.getByRole("link", { name: "Email support" })).toHaveAttribute("href", "mailto:support@creatorlock.app");
+    await expect(footer.getByRole("link", { name: "Report a security issue" })).toHaveAttribute("href", "mailto:security@creatorlock.app");
+  });
+
+  test("security.txt points researchers at the security inbox", async ({ request }) => {
+    const response = await request.get("/.well-known/security.txt");
+    expect(response.status()).toBe(200);
+    expect(await response.text()).toContain("Contact: mailto:security@creatorlock.app");
   });
 
   test("undecided policy choices are never shown as settled", async ({ page }) => {

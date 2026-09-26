@@ -48,13 +48,16 @@ export default function RefundsPage() {
           </li>
           <li>reply to your Paddle receipt email; or</li>
           <li>
-            email us at <Detail field="contactEmail" /> with the email address on your account.
+            email us at <Detail field="refundsEmail" /> with the email address on your account.
           </li>
         </List>
         <p>
           Our payments are processed by Paddle, our Merchant of Record, so refunds are issued by
           Paddle to the payment method you used. They usually appear within 5–10 business days,
           depending on your bank or payment provider.
+        </p>
+        <p>
+          For any other billing question, email <Detail field="billingEmail" />.
         </p>
       </Section>
 

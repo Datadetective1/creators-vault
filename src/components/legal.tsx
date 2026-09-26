@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import {
+  EMAIL_FIELDS,
   LEGAL,
   PLACEHOLDER_LABELS,
   PROPOSED_TERMS,
@@ -92,7 +93,7 @@ export function ExternalLink({ href, children }: { href: string; children: React
 export function Detail({ field }: { field: LegalPlaceholderKey }) {
   const value = LEGAL[field];
   if (value) {
-    if (field === "contactEmail") {
+    if (EMAIL_FIELDS.has(field)) {
       return (
         <a href={`mailto:${value}`} className="text-gold-400 underline-offset-4 hover:underline">
           {value}

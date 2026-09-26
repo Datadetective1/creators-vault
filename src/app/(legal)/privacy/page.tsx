@@ -32,7 +32,7 @@ export default function PrivacyPage() {
         </p>
         <p>
           Our mailing address is <Detail field="mailingAddress" />. For any privacy question or
-          request, contact <Detail field="contactEmail" />.
+          request, contact <Detail field="privacyEmail" />.
         </p>
       </Section>
 
@@ -91,6 +91,10 @@ export default function PrivacyPage() {
             what is needed to run the service, investigate abuse or a security problem, or comply
             with the law.</li>
         </List>
+        <p>
+          If you find a security vulnerability, please report it to{" "}
+          <Detail field="securityEmail" />.
+        </p>
       </Section>
 
       <Section id="processors" title="5. Who helps us run Creator Lock">
@@ -163,7 +167,7 @@ export default function PrivacyPage() {
         </p>
         <p>
           To use any of these rights, or to close your account, email{" "}
-          <Detail field="contactEmail" /> from the address you signed up with. We will reply within{" "}
+          <Detail field="privacyEmail" /> from the address you signed up with. We will reply within{" "}
           <Proposed term="privacyResponseDays" />. If you are unhappy with our answer, you can complain to your local data
           protection authority.
         </p>

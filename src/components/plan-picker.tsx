@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { initializePaddle, type Paddle } from "@paddle/paddle-js";
 
+import { LEGAL } from "@/lib/legal";
 import { PLAN_ORDER, PLANS, type PlanTier } from "@/lib/plans";
 
 /**
@@ -196,7 +197,19 @@ export function PlanPicker({
         <Link href="/refunds" className="text-cream-300 underline underline-offset-2 hover:text-cream-50">
           Refund Policy
         </Link>
-        .
+        .{" "}
+        {LEGAL.billingEmail && (
+          <>
+            Billing questions:{" "}
+            <a
+              href={`mailto:${LEGAL.billingEmail}`}
+              className="text-cream-300 underline underline-offset-2 hover:text-cream-50"
+            >
+              {LEGAL.billingEmail}
+            </a>
+            .
+          </>
+        )}
       </p>
     </div>
   );

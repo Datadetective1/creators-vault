@@ -33,8 +33,9 @@ export default function TermsPage() {
           &ldquo;you&rdquo; means the person using {name}.
         </p>
         <p>
-          Our mailing address is <Detail field="mailingAddress" />. You can contact us at{" "}
-          <Detail field="contactEmail" />.
+          Our mailing address is <Detail field="mailingAddress" />. For help with your account,
+          email <Detail field="supportEmail" />. Formal legal notices should be sent to{" "}
+          <Detail field="legalEmail" />.
         </p>
       </Section>
 
@@ -92,7 +93,8 @@ export default function TermsPage() {
           <ExternalLink href="https://www.paddle.com/legal/checkout-buyer-terms">
             Paddle&rsquo;s Buyer Terms
           </ExternalLink>
-          . We never see or store your full card details.
+          . We never see or store your full card details. For billing questions, you can also
+          email us at <Detail field="billingEmail" />.
         </p>
         <p>
           Creator renews automatically every month on the same day, and Paddle charges the payment
@@ -160,7 +162,7 @@ export default function TermsPage() {
         </p>
         <p>
           If you believe material in {name} infringes your rights, write to{" "}
-          <Detail field="contactEmail" /> with the details and we will look into it promptly.
+          <Detail field="legalEmail" /> with the details and we will look into it promptly.
         </p>
       </Section>
 
@@ -179,7 +181,7 @@ export default function TermsPage() {
       <Section id="ending" title="9. Closing your account">
         <p>
           You can stop using {name} at any time. To close your account and delete everything in
-          it, email <Detail field="contactEmail" /> from the address you signed up with.
+          it, email <Detail field="supportEmail" /> from the address you signed up with.
         </p>
         <p>
           If we close your account for any reason other than a serious breach of these terms, we
@@ -216,7 +218,7 @@ export default function TermsPage() {
       <Section id="law" title="12. Law and disputes">
         <p>
           These terms are governed by <Detail field="governingLaw" />. If you have a problem,
-          please contact us first at <Detail field="contactEmail" /> — most things can be sorted
+          please contact us first at <Detail field="supportEmail" /> — most things can be sorted
           out quickly. If you are a consumer, you may also be able to bring a claim in the courts
           where you live.
         </p>

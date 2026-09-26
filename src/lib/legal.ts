@@ -24,14 +24,15 @@ export const LEGAL = {
    */
   mailingAddress: "817 S MacArthur Blvd, Ste 115 #1040, Coppell, TX 75019, USA" as string | null,
   /**
-   * A monitored inbox for support, privacy and refund requests.
-   *
-   * Not set: Cloudflare Email Routing is enabled for creatorlock.app, but as of
-   * 26 September 2026 it rejects support@, privacy@, hello@, contact@, legal@
-   * and billing@ ("550 Address does not exist") and has no catch-all, so no
-   * working address exists yet. Fill this in once a routing rule is created.
+   * Contact addresses, confirmed by the owner and verified on 26 September 2026
+   * to be accepted by creatorlock.app's Cloudflare Email Routing.
    */
-  contactEmail: null as string | null,
+  supportEmail: "support@creatorlock.app" as string | null,
+  privacyEmail: "privacy@creatorlock.app" as string | null,
+  billingEmail: "billing@creatorlock.app" as string | null,
+  refundsEmail: "refunds@creatorlock.app" as string | null,
+  legalEmail: "legal@creatorlock.app" as string | null,
+  securityEmail: "security@creatorlock.app" as string | null,
   /**
    * The law that governs the Terms. No county or exclusive court venue has
    * been chosen, so none is stated.
@@ -70,16 +71,36 @@ export type LegalPlaceholderKey =
   | "operatorName"
   | "operatorJurisdiction"
   | "mailingAddress"
-  | "contactEmail"
+  | "supportEmail"
+  | "privacyEmail"
+  | "billingEmail"
+  | "refundsEmail"
+  | "legalEmail"
+  | "securityEmail"
   | "governingLaw";
 
 export const PLACEHOLDER_LABELS: Record<LegalPlaceholderKey, string> = {
   operatorName: "legal name of the business that operates Creator Lock",
   operatorJurisdiction: "where that business is registered",
   mailingAddress: "business mailing address",
-  contactEmail: "support and privacy contact email",
+  supportEmail: "support email",
+  privacyEmail: "privacy email",
+  billingEmail: "billing email",
+  refundsEmail: "refunds email",
+  legalEmail: "legal notices email",
+  securityEmail: "security reports email",
   governingLaw: "governing law",
 };
+
+/** Keys whose value is an email address, rendered as mailto links. */
+export const EMAIL_FIELDS = new Set<LegalPlaceholderKey>([
+  "supportEmail",
+  "privacyEmail",
+  "billingEmail",
+  "refundsEmail",
+  "legalEmail",
+  "securityEmail",
+]);
 
 /** Which details are still missing — handy for a pre-launch check. */
 export function missingLegalDetails(): LegalPlaceholderKey[] {

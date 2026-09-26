@@ -20,12 +20,15 @@ export function PlanPicker({
   clientToken,
   environment,
   customerEmail,
+  paddleCustomerId,
 }: {
   currentTier: PlanTier;
   paddleReady: boolean;
   clientToken: string;
   environment: string;
   customerEmail: string;
+  /** The signed-in user's Paddle customer id (ctm_…), once they have one. */
+  paddleCustomerId: string | null;
 }) {
   const paddleRef = useRef<Paddle | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -41,6 +44,9 @@ export function PlanPicker({
     initializePaddle({
       token: clientToken,
       environment: environment === "production" ? "production" : "sandbox",
+      // Paddle Retain identifies the customer by their Paddle customer id —
+      // never our user id or email. Empty until they have checked out once.
+      pwCustomer: paddleCustomerId ? { id: paddleCustomerId } : {},
     })
       .then((instance) => {
         if (!cancelled && instance) {
@@ -55,7 +61,7 @@ export function PlanPicker({
     return () => {
       cancelled = true;
     };
-  }, [paddleReady, clientToken, environment]);
+  }, [paddleReady, clientToken, environment, paddleCustomerId]);
 
   async function choosePlan(tier: PlanTier) {
     if (tier === "free" || tier === currentTier) return;

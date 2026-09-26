@@ -2,6 +2,12 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { requireServerEnv } from "@/lib/env";
 import { getPaddle, HANDLED_WEBHOOK_EVENTS, mapPaddleStatus, tierForPriceId } from "@/lib/paddle";
+import {
+  ipInCidrs,
+  paddleWebhookCidrs,
+  requestIp,
+  shouldEnforcePaddleIps,
+} from "@/lib/paddle-ips";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 /**
@@ -28,6 +34,23 @@ interface SubscriptionEventData {
 }
 
 export async function POST(request: NextRequest) {
+  // Only Paddle's published webhook addresses may reach the handler at all.
+  if (shouldEnforcePaddleIps()) {
+    let cidrs: string[];
+    try {
+      cidrs = await paddleWebhookCidrs();
+    } catch (error) {
+      // Fail closed, but retryably: Paddle redelivers on a 5xx.
+      console.error("[paddle] webhook IP list unavailable", error);
+      return NextResponse.json({ error: "Temporarily unavailable." }, { status: 503 });
+    }
+    const ip = requestIp(request.headers);
+    if (!ip || !ipInCidrs(ip, cidrs)) {
+      console.warn("[paddle] rejected webhook from a non-Paddle address", { ip });
+      return NextResponse.json({ error: "Forbidden." }, { status: 403 });
+    }
+  }
+
   const signature = request.headers.get("paddle-signature");
   if (!signature) {
     return NextResponse.json({ error: "Missing signature." }, { status: 400 });

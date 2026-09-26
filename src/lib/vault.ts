@@ -102,6 +102,7 @@ export async function getVaultSummary(
     limitBytes,
     percentUsed: limitBytes > 0 ? Math.min(100, (usage.usedBytes / limitBytes) * 100) : 0,
     hasPaddleSubscription: Boolean(subscription?.paddle_subscription_id),
+    paddleCustomerId: subscription?.paddle_customer_id ?? null,
   };
 }
 

@@ -91,6 +91,7 @@ export default async function BillingPage({
         paddleReady={paddleReady}
         clientToken={publicEnv.paddleClientToken}
         environment={publicEnv.paddleEnvironment}
+        paddleCustomerId={summary.paddleCustomerId}
         customerEmail={user.email ?? ""}
       />
 

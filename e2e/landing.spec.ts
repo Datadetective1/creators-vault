@@ -316,8 +316,18 @@ test("paddle webhook refuses unsigned requests", async ({ request }) => {
   const response = await request.post("/api/paddle/webhook", {
     data: { event_type: "subscription.created" },
   });
-  // 400 with no signature header; never 200.
-  expect(response.status()).toBe(400);
+  // Deployed, a non-Paddle address is refused first (403); locally the IP
+  // allowlist is off and the missing signature is refused (400). Never 2xx.
+  expect([400, 403]).toContain(response.status());
+});
+
+test("paddle webhook refuses non-Paddle addresses when the allowlist is enforced", async ({ request }) => {
+  test.skip(!process.env.E2E_BASE_URL, "The allowlist is enforced on the deployed site.");
+  const response = await request.post("/api/paddle/webhook", {
+    headers: { "paddle-signature": "ts=1;h1=00" },
+    data: { event_type: "subscription.created" },
+  });
+  expect(response.status()).toBe(403);
 });
 
 test("admin route is indistinguishable from one that does not exist", async ({ page }) => {

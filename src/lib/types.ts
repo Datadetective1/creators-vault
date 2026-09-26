@@ -39,4 +39,6 @@ export interface VaultSummary {
   limitBytes: number;
   percentUsed: number;
   hasPaddleSubscription: boolean;
+  /** Paddle customer id (ctm_…) once the user has checked out; used for Paddle Retain. */
+  paddleCustomerId: string | null;
 }

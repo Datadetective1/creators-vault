@@ -16,6 +16,8 @@
  * would be the English text itself and no translation could ever compile.
  */
 
+import { PRODUCT_NAME } from "@/lib/brand";
+
 export interface Dictionary {
   hero: {
     eyebrow: string;
@@ -72,14 +74,14 @@ export const en: Dictionary = {
      */
     lead: "For the work you publish on",
     disclaimer:
-      "Platform names and logos are the property of their respective owners. Creator Vault is an independent product and is not affiliated with, endorsed by, or partnered with any of them.",
+      `Platform names and logos are the property of their respective owners. ${PRODUCT_NAME} is an independent product and is not affiliated with, endorsed by, or partnered with any of them.`,
     /**
      * The hero animation shows platform marks converging on the lock, which
      * reads as an import if nothing says otherwise — and the product explicitly
      * does not import. This travels with the marks so the qualifier is on
      * screen with the picture, not three sections below it.
      */
-    heroNote: "You upload your own copies. Creator Vault never connects to these platforms.",
+    heroNote: `You upload your own copies. ${PRODUCT_NAME} never connects to these platforms.`,
   },
 
   risk: {
@@ -145,7 +147,7 @@ export const en: Dictionary = {
     eyebrow: "How it works",
     heading: "Upload. Secure. Retrieve.",
     intro:
-      "You choose what to protect and upload it yourself. Creator Vault never connects to Instagram, YouTube or TikTok, and never posts anything anywhere.",
+      `You choose what to protect and upload it yourself. ${PRODUCT_NAME} never connects to Instagram, YouTube or TikTok, and never posts anything anywhere.`,
     /** VERBATIM labels — the numbers and words must not drift from the hero. */
     items: [
       {

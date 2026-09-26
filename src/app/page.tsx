@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { PRODUCT_NAME } from "@/components/brand";
 import { ContentWall } from "@/components/content-wall";
 import { Hero } from "@/components/hero";
 import { HowItWorks } from "@/components/how-it-works";
@@ -385,7 +386,7 @@ function CheckIcon() {
 const FAQS = [
   {
     q: "Does this automatically back up my Instagram or YouTube?",
-    a: "No. Creator Vault does not connect to social platforms and does not import anything automatically. You choose the files you want protected and upload them yourself.",
+    a: `No. ${PRODUCT_NAME} does not connect to social platforms and does not import anything automatically. You choose the files you want protected and upload them yourself.`,
   },
   {
     q: "Can anyone else see my files?",

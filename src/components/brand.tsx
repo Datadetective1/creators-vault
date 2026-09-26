@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { PRODUCT_NAME } from "@/lib/brand";
+
 /**
  * The product mark: a padlock.
  *
@@ -53,11 +55,11 @@ export function LockMark({ className = "h-7 w-7" }: { className?: string }) {
 /**
  * Wordmark.
  *
- * "Creator Vault" is still a PLACEHOLDER. Ravi raised Content Wall / Content
- * Block and others; no name has been chosen, so nothing here should be treated
- * as final branding. Change it in one place when the decision lands.
+ * The name itself lives in src/lib/brand.ts — a React-free module, so the i18n
+ * dictionary and the route metadata can read the same constant. Re-exported
+ * here because this is where callers already look for it.
  */
-export const PRODUCT_NAME = "Creator Vault";
+export { PRODUCT_NAME };
 
 export function Logo({ href = "/" }: { href?: string }) {
   return (

@@ -1,4 +1,4 @@
-# Creator Vault
+# Creator Lock
 
 > Your content is your business. Protect the work behind your brand.
 

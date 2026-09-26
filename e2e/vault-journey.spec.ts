@@ -45,7 +45,7 @@ test.describe("creator journey", () => {
     await expect(page).toHaveURL(/\/dashboard\/upload/);
 
     const filename = `vault-e2e-${Date.now()}.txt`;
-    const contents = "Creator Vault end-to-end test asset.";
+    const contents = "Creator Lock end-to-end test asset.";
 
     await page.setInputFiles('input[type="file"]', {
       name: filename,

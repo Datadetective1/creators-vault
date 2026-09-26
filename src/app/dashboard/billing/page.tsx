@@ -69,11 +69,20 @@ export default async function BillingPage({
           </span>
         </div>
 
-        {summary.currentPeriodEnd && summary.plan.tier !== "free" && (
+        {summary.plan.tier !== "free" && summary.scheduledCancelAt ? (
           <p className="mt-4 text-sm text-muted">
-            {summary.status === "canceled" ? "Access ends" : "Renews"} on{" "}
-            {formatDate(summary.currentPeriodEnd)}.
+            Cancelled — you keep {summary.plan.name} until{" "}
+            {formatDate(summary.scheduledCancelAt)}, then move to Free. You will not be charged
+            again.
           </p>
+        ) : (
+          summary.currentPeriodEnd &&
+          summary.plan.tier !== "free" && (
+            <p className="mt-4 text-sm text-muted">
+              {summary.status === "canceled" ? "Access ends" : "Renews"} on{" "}
+              {formatDate(summary.currentPeriodEnd)}.
+            </p>
+          )
         )}
       </div>
 

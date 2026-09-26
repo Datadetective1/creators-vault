@@ -23,6 +23,7 @@ export interface SubscriptionRow {
   plan: string;
   status: string;
   current_period_end: string | null;
+  scheduled_cancel_at: string | null;
   paddle_subscription_id: string | null;
   paddle_customer_id: string | null;
 }
@@ -31,6 +32,8 @@ export interface VaultSummary {
   plan: PlanDefinition;
   status: string;
   currentPeriodEnd: string | null;
+  /** Set when the subscriber cancelled "at period end"; the plan stays paid until then. */
+  scheduledCancelAt: string | null;
   usedBytes: number;
   fileCount: number;
   limitBytes: number;

@@ -21,6 +21,7 @@ interface SubscriptionEventData {
   status?: string;
   customerId?: string;
   updatedAt?: string;
+  scheduledChange?: { action?: string; effectiveAt?: string } | null;
   currentBillingPeriod?: { endsAt?: string } | null;
   customData?: Record<string, unknown> | null;
   items?: Array<{ price?: { id?: string } | null }>;
@@ -114,6 +115,10 @@ async function applySubscriptionEvent(
     p_plan: grantedPlan,
     p_status: status,
     p_current_period_end: periodEnd,
+    // A cancel chosen "at period end" leaves the subscription active until
+    // then; record it so the plan page stops promising a renewal.
+    p_scheduled_cancel_at:
+      data.scheduledChange?.action === "cancel" ? (data.scheduledChange.effectiveAt ?? null) : null,
     p_event_updated_at: data.updatedAt ?? occurredAt,
   });
 

@@ -25,17 +25,26 @@
 -- ---------------------------------------------------------------------------
 
 -- Move any subscription still naming the retired tier onto creator.
-do $$
-begin
-  if exists (
-    select 1 from information_schema.columns
-    where table_schema = 'public' and table_name = 'subscriptions' and column_name = 'tier'
-  ) then
-    update public.subscriptions
-       set tier = 'creator'::public.plan_tier
-     where tier = 'pro'::public.plan_tier;
-  end if;
-end$$;
+--
+-- The column on public.subscriptions is `plan` (0001_init.sql:88), not `tier`.
+-- This block previously guarded on a column named `tier` and its body also read
+-- and wrote `tier`, so it was wrong twice: the guard was always false, which is
+-- precisely what stopped anyone noticing that the UPDATE would not even parse
+-- against the real table — plpgsql parses a statement on first execution, and
+-- it never executed. The migration reported success and did nothing.
+--
+-- The consequence was the exact inverse of this file's own stated intent. The
+-- `delete from public.plans` below is not blocked by anything, so a surviving
+-- plan='pro' row loses its plans row, user_storage_limit()'s join finds nothing
+-- and its coalesce hands back the FREE allowance: a silent 500 GB -> 5 GiB
+-- downgrade for someone who was paying. Measured on a local replay before the
+-- fix; 0007 adds the foreign key that would have made it fail loudly instead.
+--
+-- No guard now. The column exists in every database that has run 0001, which is
+-- every database that can run this file.
+update public.subscriptions
+   set plan = 'creator'::public.plan_tier
+ where plan = 'pro'::public.plan_tier;
 
 -- Same for any in-flight checkout session that named it.
 do $$

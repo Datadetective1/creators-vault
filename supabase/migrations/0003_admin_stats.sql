@@ -1,5 +1,5 @@
 -- ===========================================================================
--- Creator Vault — internal pilot metrics
+-- Creator Lock — internal pilot metrics
 --
 -- SECURITY DEFINER so it can aggregate across users, but EXECUTE is revoked
 -- from `anon` and `authenticated`. Only the service role can call it, and the

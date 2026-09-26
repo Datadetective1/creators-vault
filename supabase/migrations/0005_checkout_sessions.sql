@@ -1,5 +1,5 @@
 -- ===========================================================================
--- Creator Vault — bind a Paddle checkout to the account that started it
+-- Creator Lock — bind a Paddle checkout to the account that started it
 --
 -- Checkout previously passed `{ user_id }` to the browser as Paddle custom
 -- data. Paddle stores whatever it is handed and signs the resulting webhook

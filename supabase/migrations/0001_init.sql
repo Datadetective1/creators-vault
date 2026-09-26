@@ -1,5 +1,5 @@
 -- ===========================================================================
--- Creator Vault — core schema
+-- Creator Lock — core schema
 -- Tables: profiles, subscriptions, assets
 -- Every table is protected by Row Level Security. A user can only ever reach
 -- their own rows; there is no policy that exposes another user's data.

@@ -36,6 +36,23 @@ test("landing page shows the full story", async ({ page }) => {
   await expect(page.getByText("Up to 100 GB", { exact: false }).first()).toBeVisible();
 });
 
+test("/pricing is a real pricing page, linked from the nav and footer", async ({ page }) => {
+  const response = await page.goto("/pricing");
+  expect(response?.status()).toBe(200);
+  await expect(page).toHaveURL(/\/pricing$/);
+  await expect(page.getByRole("heading", { level: 1, name: "Start free. One simple paid plan." })).toBeVisible();
+  await expect(page.getByText("$4", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("/month + applicable tax", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("Up to 100 GB", { exact: false }).first()).toBeVisible();
+  await expect(page.getByRole("heading", { name: "How billing works" })).toBeVisible();
+  await expect(page.locator("main a[href='/refunds']").first()).toBeVisible();
+  await expect(page.locator("main a[href='/terms']").first()).toBeVisible();
+
+  await page.goto("/");
+  await expect(page.locator("footer").getByRole("link", { name: "Pricing" })).toHaveAttribute("href", "/pricing");
+  await expect(page.locator("header").getByRole("link", { name: "Pricing" }).first()).toHaveAttribute("href", "/pricing");
+});
+
 test.describe("policies", () => {
   const POLICIES = [
     { href: "/terms", link: "Terms of Service", heading: "Terms of Service" },

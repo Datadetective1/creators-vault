@@ -8,7 +8,7 @@ import { Logo } from "@/components/brand";
 const LINKS = [
   { href: "/#how-it-works", label: "How It Works" },
   { href: "/#what-you-can-protect", label: "What You Can Protect" },
-  { href: "/#pricing", label: "Pricing" },
+  { href: "/pricing", label: "Pricing" },
   { href: "/#faq", label: "FAQ" },
 ];
 

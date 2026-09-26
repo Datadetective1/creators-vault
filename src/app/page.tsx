@@ -6,13 +6,12 @@ import { Hero } from "@/components/hero";
 import { HowItWorks } from "@/components/how-it-works";
 import { MediaTile } from "@/components/media-tile";
 import { PlatformMarquee } from "@/components/platform-marquee";
+import { PricingSection } from "@/components/pricing-section";
 import { Reveal } from "@/components/reveal";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteNav } from "@/components/site-nav";
-import { isPaddleConfigured } from "@/lib/env";
 import { getDictionary } from "@/lib/i18n";
 import { CONTENT_WALL } from "@/lib/media";
-import { PLANS } from "@/lib/plans";
 import { getCurrentUser } from "@/lib/supabase/server";
 
 /** Base-language copy. One lookup point, so a locale is a file, not a hunt. */
@@ -33,7 +32,7 @@ export default async function HomePage() {
         <HowItWorks />
         <ContentWall />
         <TrustSection />
-        <Pricing />
+        <PricingSection />
         <Faq />
         <FinalCta signedIn={signedIn} />
       </main>
@@ -249,141 +248,6 @@ function TrustIcon({ name }: { name: "lock" | "download" | "sliders" }) {
       <path d="M5 8h14M5 16h14" {...common} />
       <circle cx="10" cy="8" r="2.2" {...common} />
       <circle cx="15" cy="16" r="2.2" {...common} />
-    </svg>
-  );
-}
-
-/* -------------------------------------------------------------------------- */
-/* Pricing                                                                    */
-/* -------------------------------------------------------------------------- */
-
-/**
- * Pilot pricing.
- *
- * Two tiers, both read from `src/lib/plans.ts` — the same definitions the
- * dashboard's plan picker and the server-side quota check use, so the price a
- * visitor reads here cannot drift from the allowance they actually get. The
- * retired 500 GB tier is gone from the model itself (migration 0006), not
- * merely hidden from this section.
- *
- * The price is pilot pricing and is NOT wired to billing: PADDLE_CREATOR_PRICE_ID
- * is an unset placeholder, so `isPaddleConfigured()` is false and checkout
- * refuses. Both cards link to sign-up, never to a checkout.
- *
- * "Nothing is charged yet" is read off that same switch rather than asserted.
- * A standing promise on a public page would quietly become a lie the moment
- * somebody sets a real price id — the billing page two clicks away opens a live
- * Paddle overlay as soon as it is configured. This way the claim and the
- * behaviour cannot disagree.
- */
-function Pricing() {
-  const { free, creator } = PLANS;
-  const billingLive = isPaddleConfigured();
-
-  return (
-    <section id="pricing" className="scroll-mt-24 border-t border-ink-800/80 py-20 sm:py-28">
-      <div className="container-page">
-        <Reveal>
-          <div className="mx-auto max-w-2xl text-center">
-            <p className="eyebrow justify-center">Pricing</p>
-            <h2 className="section-heading mt-3">Start free. One simple paid plan.</h2>
-            <p className="prose-muted mt-4">
-              {billingLive
-                ? "Pilot pricing. Change plan at any time."
-                : "Pilot pricing, while we finish building. Nothing is charged yet."}
-            </p>
-          </div>
-        </Reveal>
-
-        <div className="mx-auto mt-12 grid max-w-3xl gap-4 md:grid-cols-2">
-          <Reveal>
-            <div className="h-full rounded-2xl border border-ink-700 bg-ink-850/70 p-6 transition-transform duration-300 hover:-translate-y-1">
-              <h3 className="text-lg font-semibold text-cream-50">{free.name}</h3>
-              <p className="mt-1 text-sm text-muted">{free.tagline}</p>
-
-              <p className="mt-6 text-4xl font-semibold tracking-tight text-cream-50">
-                {free.storageLabel}
-              </p>
-              <p className="text-sm text-muted">of private storage</p>
-
-              <ul className="mt-6 space-y-2.5">
-                {free.features.map((feature) => (
-                  <li key={feature} className="flex gap-2.5 text-sm text-cream-300">
-                    <CheckIcon />
-                    <span>{feature}</span>
-                  </li>
-                ))}
-              </ul>
-
-              <Link href="/signup" className="btn-secondary mt-7 w-full">
-                Start free
-              </Link>
-            </div>
-          </Reveal>
-
-          <Reveal delay={90}>
-            <div className="relative h-full overflow-hidden rounded-2xl border-2 border-gold-400/70 bg-ink-850 p-6 transition-transform duration-300 hover:-translate-y-1">
-              <div
-                aria-hidden="true"
-                className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full opacity-40 blur-3xl"
-                style={{ background: "radial-gradient(circle, rgba(255,176,31,0.7), transparent 70%)" }}
-              />
-
-              <h3 className="relative text-lg font-semibold text-cream-50">{creator.name}</h3>
-              <p className="relative mt-1 text-sm text-muted">{creator.tagline}</p>
-
-              <p className="relative mt-6 flex flex-wrap items-baseline gap-x-0.5">
-                {/* Solid, not text-gradient: across two glyphs the ramp puts
-                    a gold "$" beside a magenta "4". plan-picker.tsx renders the
-                    same priceLabel in gold-400. */}
-                <span className="text-4xl font-semibold tracking-tight text-gold-400">
-                  {creator.priceLabel}
-                </span>
-                <span className="text-sm text-muted">{creator.pricePeriod}</span>
-              </p>
-              <p className="relative text-sm text-muted">
-                {creator.storageLabel} — flat, however much you store
-              </p>
-
-              <ul className="relative mt-6 space-y-2.5">
-                {creator.features.map((feature) => (
-                  <li key={feature} className="flex gap-2.5 text-sm text-cream-300">
-                    <CheckIcon />
-                    <span>{feature}</span>
-                  </li>
-                ))}
-              </ul>
-
-              <Link href="/signup" className="btn-primary relative mt-7 w-full">
-                Join the pilot
-              </Link>
-            </div>
-          </Reveal>
-        </div>
-
-        <p className="mx-auto mt-8 max-w-2xl text-center text-sm text-muted">
-          {billingLive
-            ? "Pilot pricing is not final. Paid plans are billed through Paddle, our payment provider, with the price confirmed at checkout."
-            : "Pilot pricing is not final and no card is charged today. Paid plans will be billed through Paddle, our payment provider, with the price confirmed at checkout."}{" "}
-          See our{" "}
-          <Link href="/terms" className="text-cream-300 underline underline-offset-2 hover:text-cream-50">
-            Terms
-          </Link>{" "}
-          and{" "}
-          <Link href="/refunds" className="text-cream-300 underline underline-offset-2 hover:text-cream-50">
-            Refund Policy
-          </Link>
-          .
-        </p>
-      </div>
-    </section>
-  );
-}
-
-function CheckIcon() {
-  return (
-    <svg viewBox="0 0 20 20" className="mt-0.5 h-4 w-4 shrink-0 text-gold-400" fill="none" aria-hidden="true">
-      <path d="M4.5 10.5l3.5 3.5 7.5-8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }

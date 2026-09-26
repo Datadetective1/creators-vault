@@ -69,7 +69,10 @@ test.describe("creator journey", () => {
   test("sign-up form answers neutrally and grants no session", async ({ page }) => {
     // A fresh address, and one that is already registered, must get the same
     // answer: anything else tells an outsider which emails have accounts.
-    const freshEmail = `e2e-signup-${randomUUID().slice(0, 12)}@creatorlock.test`;
+    // A real confirmation email is sent for this address, so it must be one
+    // that accepts mail: Resend's test inbox takes it and discards it. An
+    // undeliverable address would bounce and cost the sending domain reputation.
+    const freshEmail = `delivered+cl-signup-${randomUUID().slice(0, 12)}@resend.dev`;
     let existing: TestUser | undefined;
 
     try {

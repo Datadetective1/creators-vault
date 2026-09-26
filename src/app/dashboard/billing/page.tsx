@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { ManageBillingButton } from "@/components/manage-billing-button";
 import { PlanPicker } from "@/components/plan-picker";
 import { formatDate } from "@/lib/format";
 import { isPaddleConfigured, publicEnv } from "@/lib/env";
@@ -18,9 +19,14 @@ const STATUS_LABEL: Record<string, string> = {
   inactive: "Inactive",
 };
 
-export default async function BillingPage() {
+export default async function BillingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ checkout?: string }>;
+}) {
   const user = await getCurrentUser();
   if (!user) return null;
+  const { checkout } = await searchParams;
 
   const supabase = await createClient();
   const summary = await getVaultSummary(supabase, user);
@@ -36,6 +42,16 @@ export default async function BillingPage() {
           Change how much storage your vault has.
         </p>
       </div>
+
+      {checkout === "complete" && summary.plan.tier === "free" && (
+        <p
+          role="status"
+          className="rounded-xl border border-gold-400/40 bg-gold-400/10 px-4 py-3 text-sm text-gold-300"
+        >
+          Payment received. Your plan updates as soon as Paddle confirms it — usually within a
+          minute. Refresh this page to see it.
+        </p>
+      )}
 
       <div className="card">
         <div className="flex flex-wrap items-center justify-between gap-4">
@@ -73,11 +89,11 @@ export default async function BillingPage() {
         <div className="card">
           <h2 className="text-base font-semibold text-cream-50">Cancel or update payment</h2>
           <p className="mt-2 text-sm leading-relaxed text-muted">
-            Your subscription is managed by Paddle, our payment provider. Use the link in any
-            Paddle receipt email to update your payment method or cancel. Cancelling moves you
+            Your subscription is managed by Paddle, our payment provider. Cancelling moves you
             back to the Free plan at the end of your billing period — your files stay in your
             vault and remain downloadable.
           </p>
+          {paddleReady && <ManageBillingButton />}
         </div>
       )}
     </div>

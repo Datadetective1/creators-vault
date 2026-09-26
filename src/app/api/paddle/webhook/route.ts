@@ -20,6 +20,7 @@ interface SubscriptionEventData {
   id?: string;
   status?: string;
   customerId?: string;
+  updatedAt?: string;
   currentBillingPeriod?: { endsAt?: string } | null;
   customData?: Record<string, unknown> | null;
   items?: Array<{ price?: { id?: string } | null }>;
@@ -57,7 +58,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    await applySubscriptionEvent(event.data as SubscriptionEventData);
+    await applySubscriptionEvent(event.data as SubscriptionEventData, event.occurredAt);
   } catch (error) {
     // A 500 tells Paddle to retry, which is what we want for a transient
     // database failure.
@@ -68,7 +69,10 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({ ok: true });
 }
 
-async function applySubscriptionEvent(data: SubscriptionEventData): Promise<void> {
+async function applySubscriptionEvent(
+  data: SubscriptionEventData,
+  occurredAt: string,
+): Promise<void> {
   const supabase = createAdminClient();
 
   const subscriptionId = data.id ?? null;
@@ -94,37 +98,39 @@ async function applySubscriptionEvent(data: SubscriptionEventData): Promise<void
   }
 
   /*
-   * Only write to a row that is unclaimed or already belongs to this Paddle
-   * customer. Without this an event could reassign one account's subscription
-   * onto another, even after the nonce mapping has narrowed who can be named.
+   * One atomic statement (migration 0009) that only writes when:
+   *  - the row is unclaimed or already belongs to this Paddle customer, so an
+   *    event cannot reassign one account's subscription onto another; and
+   *  - this event is newer than the last one applied. Paddle does not
+   *    guarantee delivery order, so a delayed "active" update must not undo a
+   *    cancellation that superseded it.
+   * The subscription's own updated_at is the ordering key; the event time is
+   * only a fallback for a payload that somehow lacks it.
    */
-  let query = supabase
-    .from("subscriptions")
-    .update(
-      {
-        paddle_customer_id: customerId,
-        paddle_subscription_id: subscriptionId,
-        plan: grantedPlan,
-        status,
-        current_period_end: periodEnd,
-      },
-      { count: "exact" },
-    )
-    .eq("user_id", userId);
-
-  if (customerId) {
-    query = query.or(`paddle_customer_id.is.null,paddle_customer_id.eq.${customerId}`);
-  }
-
-  const { error, count } = await query;
+  const { data: outcome, error } = await supabase.rpc("apply_paddle_subscription_event", {
+    p_user_id: userId,
+    p_paddle_customer_id: customerId,
+    p_paddle_subscription_id: subscriptionId,
+    p_plan: grantedPlan,
+    p_status: status,
+    p_current_period_end: periodEnd,
+    p_event_updated_at: data.updatedAt ?? occurredAt,
+  });
 
   if (error) throw new Error(error.message);
 
-  if (!count) {
+  if (outcome === "foreign_customer") {
     console.error("[paddle] refused to reassign a subscription owned by another customer", {
       subscriptionId,
       customerId,
     });
+  } else if (outcome === "stale") {
+    console.info("[paddle] ignored an event older than the one already applied", {
+      subscriptionId,
+      status,
+    });
+  } else if (outcome !== "applied") {
+    console.error("[paddle] subscription event not applied", { outcome, subscriptionId });
   }
 }
 

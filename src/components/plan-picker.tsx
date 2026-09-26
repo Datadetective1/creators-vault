@@ -81,7 +81,13 @@ export function PlanPicker({
         items: [{ priceId: body.priceId, quantity: 1 }],
         customer: customerEmail ? { email: customerEmail } : undefined,
         customData: body.customData,
-        settings: { displayMode: "overlay", theme: "dark" },
+        settings: {
+          displayMode: "overlay",
+          theme: "dark",
+          // Back to the plan page once paid. The plan itself only changes when
+          // the verified webhook lands; the page explains that while it waits.
+          successUrl: `${window.location.origin}/dashboard/billing?checkout=complete`,
+        },
       });
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Could not start checkout.");

@@ -40,10 +40,11 @@ than erroring.
    - `service_role` key → `SUPABASE_SERVICE_ROLE_KEY` (server-only, never
      expose this to the browser)
 3. **SQL Editor**, run every file in `supabase/migrations/` in numeric order,
-   **as seven separate executions** — `0001_init.sql`, `0002_storage.sql`,
+   **as eight separate executions** — `0001_init.sql`, `0002_storage.sql`,
    `0003_admin_stats.sql`, `0004_quota_enforcement.sql`,
    `0005_checkout_sessions.sql`, `0006_retire_pro_plan.sql`,
-   `0007_harden_quota_and_isolation.sql`.
+   `0007_harden_quota_and_isolation.sql`,
+   `0008_storage_hardening_hosted.sql`.
 
    They create the tables, all RLS policies, the private `vault` bucket, and the
    triggers that enforce size and quota in the database.
@@ -54,11 +55,17 @@ than erroring.
 
    Two things to check rather than assume, because both can fail quietly:
 
-   - Everything `0002` and `0007` do to `storage.objects` and `storage.buckets`
-     needs owner-level rights on those tables, which belong to
-     `supabase_storage_admin`. Run this first — if `can_act_as_storage_admin` is
-     false, prefix `0002` and `0007` with `set role supabase_storage_admin;`, or
-     create the bucket through **Storage → New bucket** instead:
+   - `storage.objects` and `storage.buckets` belong to `supabase_storage_admin`,
+     so some of what `0002`, `0004` and `0007` do there can be refused. Measured
+     on the live project: `postgres` is **not** a member of that role, yet
+     `CREATE POLICY` and `CREATE TRIGGER` on `storage.objects` both still
+     succeed — only `ALTER TABLE ... ENABLE ROW LEVEL SECURITY` fails. `0008`
+     exists for exactly that one statement, which is why it must be applied.
+
+     Do **not** try `set role supabase_storage_admin;` as a workaround — with
+     `postgres` not a member, that statement fails with 42501 too. If the
+     bucket write in `0002` is refused, create the bucket through
+     **Storage → New bucket** instead.
 
      ```sql
      select pg_has_role(current_user,'supabase_storage_admin','USAGE') as can_act_as_storage_admin,

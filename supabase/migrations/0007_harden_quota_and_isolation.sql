@@ -368,6 +368,22 @@ $$;
 -- ---------------------------------------------------------------------------
 -- 6. Storage DDL, guarded
 --
+-- ⚠ THIS BLOCK IS SUPERSEDED BY 0008 ON A HOSTED PROJECT. Read that file.
+--
+-- The "fails soft" design below does not do what it says. plpgsql's EXCEPTION
+-- clause opens a savepoint, so a failure ANYWHERE in the block rolls the WHOLE
+-- block back — not just the failing statement. The ALTER is the first statement,
+-- and on hosted Supabase it is the one that fails (postgres is not a member of
+-- supabase_storage_admin), so the four policies and the trigger are DISCARDED
+-- while the migration reports success and prints a NOTICE that reads as though
+-- only one step was skipped. Measured both ways: a non-owner running this exact
+-- shape ends with zero policies on the table.
+--
+-- 0008 re-does everything below, enabling RLS only when it is actually off, so
+-- the one statement that cannot succeed stops taking the rest with it. Kept here
+-- unchanged because it has already been applied to the live project, and because
+-- on a database where the role DOES own storage.objects this block is correct.
+--
 -- Every statement in this block needs ownership of storage.objects, which on a
 -- hosted project belongs to supabase_storage_admin. Supabase's own documented
 -- storage examples are `create policy ... on storage.objects`, and CREATE

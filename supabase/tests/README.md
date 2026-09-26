@@ -61,6 +61,10 @@ once against a throwaway hosted project:
   PostgREST connects, not from the `rolbypassrls` bit. The shim's `service_role`
   is deliberately an ordinary role, so nothing here describes the real webhook
   path.
-- **Whether `0002` and `0007` apply at all on a hosted project.** Their
-  `storage.objects` statements need owner-level rights; see the check in the
-  root `README.md`.
+- **Whether the `storage.objects` statements apply on a hosted project.** They
+  need owner-level rights. Measured on the live project: `CREATE POLICY` and
+  `CREATE TRIGGER` succeed as `postgres`, but `ALTER TABLE ... ENABLE ROW LEVEL
+  SECURITY` does not — and because `0007` section 6 wraps everything in one
+  exception handler, that single failure discarded the whole block. `0008` is
+  the fix. These tests pass either way, because the local harness owns the
+  table, so they cannot catch that class of problem at all.

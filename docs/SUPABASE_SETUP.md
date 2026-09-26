@@ -106,13 +106,21 @@ select current_user,
        (select relrowsecurity from pg_class where oid='storage.objects'::regclass) as objects_rls_on;
 ```
 
-- `can_act_as_storage_admin` **true** → run everything as-is.
-- **false** → prefix `0002` and `0007` with `set role supabase_storage_admin;`.
-  If that is also refused, the bucket from step 2 stands in for `0002`'s write,
-  but the four object policies are the entire cross-user file isolation
-  guarantee — stop and say so rather than continuing.
+Interpretation, corrected against what the live project actually did:
 
-Then **SQL Editor**, one file per query tab, in filename order, **all seven**:
+- `can_act_as_storage_admin` will most likely read **false** — `postgres` is not
+  a member of that role. That does **not** mean the storage DDL fails. Measured
+  on the live project: `CREATE POLICY` and `CREATE TRIGGER` on `storage.objects`
+  both succeed as `postgres`; the single statement that fails is
+  `ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY`. Migration `0008`
+  exists for precisely that statement — which is why it is not optional.
+- Do **not** try `set role supabase_storage_admin;`. With `postgres` not a
+  member, that statement fails with 42501 as well. (An earlier version of this
+  runbook recommended it; that advice was wrong.)
+- If `can_write_buckets` is false, the bucket you made in step 2 stands in for
+  `0002`'s write. Note it and carry on.
+
+Then **SQL Editor**, one file per query tab, in filename order, **all eight**:
 
 ```
 0001_init.sql
@@ -122,16 +130,19 @@ Then **SQL Editor**, one file per query tab, in filename order, **all seven**:
 0005_checkout_sessions.sql
 0006_retire_pro_plan.sql
 0007_harden_quota_and_isolation.sql
+0008_storage_hardening_hosted.sql
 ```
 
-Run them as **seven separate executions**, not one paste. A multi-statement send
+Run them as **eight separate executions**, not one paste. A multi-statement send
 is one implicit transaction, so a failure in a later file silently discards the
 earlier ones. Wrap each file in `begin; … commit;` so a failure rolls that file
 back rather than leaving it half-applied, and read the result panel after each
 one. All seven are replay-safe, so re-running a file is fine.
 
-`0007` is not optional. It closes a set of quota bypasses and cross-user leaks
-that were measured against `0001..0006`; `supabase/tests/` holds the proof.
+`0007` and `0008` are not optional. `0007` closes a set of quota bypasses and
+cross-user leaks measured against `0001..0006`; `0008` is what makes `0007`'s
+`storage.objects` half actually land on a hosted project. `supabase/tests/`
+holds the proof for both.
 
 ### Statements that may error
 
@@ -142,7 +153,8 @@ that were measured against `0001..0006`; `supabase/tests/` holds the proof.
 | `0002` the four `create policy … on storage.objects` | `must be owner of relation objects` | **Stop.** These are the whole file-isolation guarantee. |
 | `0004` / `0007` `create trigger … on storage.objects` | `must be owner` | Tell me. Without it the storage-side quota does not exist and only the `assets` trigger enforces the limit. |
 | `0004` `update storage.buckets set allowed_mime_types` | *no error, zero rows* | A refused `UPDATE` under RLS raises nothing. Always verify it (below); if empty, enter the types by hand from `0004`. |
-| `0007`'s storage block | `NOTICE: SKIPPED the storage.objects hardening` | Deliberate — it fails soft. Re-run that block after `set role supabase_storage_admin;`. |
+| `0007`'s storage block | `NOTICE: SKIPPED the storage.objects hardening` | **Expected on hosted, and `0008` is the fix — just carry on to it.** The block's exception handler rolls the *whole* block back, not only the failing `ALTER`, so the policies and trigger are discarded rather than skipped. `0008` re-does them without the `ALTER`. |
+| `0008` | `must be owner of table objects` on `CREATE POLICY` | Then the storage isolation guarantee genuinely cannot be installed from SQL. **Stop and say so** — this contradicts what the live project measured. |
 
 ---
 

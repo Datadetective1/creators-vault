@@ -46,9 +46,12 @@ test.describe("policies", () => {
   for (const policy of POLICIES) {
     test(`${policy.href} is public and linked from the footer`, async ({ page }) => {
       await page.goto("/");
-      const footer = page.locator("footer");
-      await footer.getByRole("link", { name: policy.link }).click();
-      await expect(page).toHaveURL(new RegExp(`${policy.href}$`));
+      const link = page.locator("footer").getByRole("link", { name: policy.link });
+      await expect(link).toHaveAttribute("href", policy.href);
+      // Under a parallel run a click can land before hydration, and the client
+      // router then starts navigating late; give it realistic headroom.
+      await link.click();
+      await expect(page).toHaveURL(new RegExp(`${policy.href}$`), { timeout: 15_000 });
       await expect(page.getByRole("heading", { level: 1, name: policy.heading })).toBeVisible();
 
       // Every business detail is now confirmed: no placeholder may remain.
@@ -64,10 +67,10 @@ test.describe("policies", () => {
     await expect(agreement.getByRole("link", { name: "Privacy Policy" })).toHaveAttribute("href", "/privacy");
   });
 
-  test("refunds go through Paddle and the window is marked as proposed", async ({ page }) => {
+  test("refunds are 14 days and go through Paddle", async ({ page }) => {
     await page.goto("/refunds");
     await expect(page.getByRole("heading", { name: "1. Refund window" })).toBeVisible();
-    await expect(page.getByText("[proposed — pending confirmation]").first()).toBeVisible();
+    await expect(page.getByText(/within 14 days of being charged/)).toBeVisible();
     await expect(page.getByRole("link", { name: "paddle.net" })).toHaveAttribute("href", "https://paddle.net");
   });
 
@@ -117,11 +120,23 @@ test.describe("policies", () => {
     expect(await response.text()).toContain("Contact: mailto:security@creatorlock.app");
   });
 
-  test("undecided policy choices are never shown as settled", async ({ page }) => {
+  test("the confirmed policy terms are published as final", async ({ page }) => {
+    for (const href of ["/terms", "/privacy", "/refunds"]) {
+      await page.goto(href);
+      expect((await page.textContent("main")) ?? "").not.toContain("pending confirmation");
+    }
+
     await page.goto("/terms");
-    // Minimum age, notice periods and the liability cap await a decision.
-    await expect(page.getByText("[proposed — pending confirmation]")).toHaveCount(4);
+    await expect(page.getByText(/at least 16 years old/)).toBeVisible();
+    await expect(page.getByText(/at least 30 days before the new price applies/)).toBeVisible();
+    await expect(page.getByText(/at least 30 days’ notice so you can download your files, and refund any unused prepaid period where applicable/)).toBeVisible();
+    await expect(page.getByText(/the amount you paid us in the 12 months before it arose, or US\$50, whichever is greater/)).toBeVisible();
     await expect(page.getByText(/governed by the laws of the State of Texas, United States\./)).toBeVisible();
+
+    await page.goto("/privacy");
+    await expect(page.getByText(/delete your account data and files within 30 days/)).toBeVisible();
+    await expect(page.getByText(/We will reply within 30 days/)).toBeVisible();
+    await expect(page.getByText(/not intended for anyone under 16/)).toBeVisible();
   });
 });
 

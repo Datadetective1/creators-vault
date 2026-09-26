@@ -188,8 +188,8 @@ export function PlanPicker({
 
       <p className="text-xs leading-relaxed text-muted">
         Payments are processed by Paddle, our Merchant of Record. Prices exclude tax; any tax that
-        applies is shown at checkout before you pay. Creator renews monthly until you cancel. See
-        our{" "}
+        applies is shown at checkout before you pay. Creator renews monthly until you cancel, and
+        any payment can be refunded within 14 days. See our{" "}
         <Link href="/terms" className="text-cream-300 underline underline-offset-2 hover:text-cream-50">
           Terms of Service
         </Link>{" "}

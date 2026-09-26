@@ -52,17 +52,18 @@ export const LEGAL = {
  * pending confirmation" marker. When one is decided, set `confirmed: true`
  * (and change `value` if the decision differs) and the marker disappears.
  */
+// All confirmed by the owner on 26 September 2026.
 export const PROPOSED_TERMS = {
-  minimumAge: { value: "16", confirmed: false },
-  priceChangeNoticeDays: { value: "30 days", confirmed: false },
-  closureNoticeDays: { value: "30 days", confirmed: false },
-  accountDeletionDays: { value: "30 days", confirmed: false },
+  minimumAge: { value: "16", confirmed: true },
+  priceChangeNoticeDays: { value: "30 days", confirmed: true },
+  closureNoticeDays: { value: "30 days’", confirmed: true },
+  accountDeletionDays: { value: "30 days", confirmed: true },
   liabilityCap: {
     value: "the amount you paid us in the 12 months before it arose, or US$50, whichever is greater",
-    confirmed: false,
+    confirmed: true,
   },
-  refundWindowDays: { value: "14", confirmed: false },
-  privacyResponseDays: { value: "30 days", confirmed: false },
+  refundWindowDays: { value: "14", confirmed: true },
+  privacyResponseDays: { value: "30 days", confirmed: true },
 } as const;
 
 export type ProposedTermKey = keyof typeof PROPOSED_TERMS;

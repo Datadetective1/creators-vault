@@ -186,7 +186,7 @@ export default function TermsPage() {
         <p>
           If we close your account for any reason other than a serious breach of these terms, we
           will give you at least <Proposed term="closureNoticeDays" /> notice so you can download
-          your files, and refund any unused part of a paid period.
+          your files, and refund any unused prepaid period where applicable.
         </p>
       </Section>
 

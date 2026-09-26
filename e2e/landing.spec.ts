@@ -32,7 +32,46 @@ test("landing page shows the full story", async ({ page }) => {
   await expect(page.getByText("5 GB", { exact: true }).first()).toBeVisible();
   await expect(page.getByRole("heading", { name: "Creator", exact: true })).toBeVisible();
   await expect(page.getByText("$4", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("/month + applicable tax", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("Up to 100 GB", { exact: false }).first()).toBeVisible();
+});
+
+test.describe("policies", () => {
+  const POLICIES = [
+    { href: "/terms", link: "Terms of Service", heading: "Terms of Service" },
+    { href: "/privacy", link: "Privacy Policy", heading: "Privacy Policy" },
+    { href: "/refunds", link: "Refund Policy", heading: "Refund Policy" },
+  ];
+
+  for (const policy of POLICIES) {
+    test(`${policy.href} is public and linked from the footer`, async ({ page }) => {
+      await page.goto("/");
+      const footer = page.locator("footer");
+      await footer.getByRole("link", { name: policy.link }).click();
+      await expect(page).toHaveURL(new RegExp(`${policy.href}$`));
+      await expect(page.getByRole("heading", { level: 1, name: policy.heading })).toBeVisible();
+
+      // No invented business details: anything unconfirmed is visibly marked,
+      // and nothing claims an inbox on a domain that cannot receive mail.
+      const body = (await page.textContent("main")) ?? "";
+      expect(body).not.toMatch(/@creatorlock\.app/);
+      // The seller name Paddle shows has not been confirmed as the operator.
+      expect(body).not.toMatch(/meridian vertex/i);
+    });
+  }
+
+  test("sign-up links the Terms and Privacy Policy", async ({ page }) => {
+    await page.goto("/signup");
+    const agreement = page.getByText("By creating an account you agree to our");
+    await expect(agreement.getByRole("link", { name: "Terms of Service" })).toHaveAttribute("href", "/terms");
+    await expect(agreement.getByRole("link", { name: "Privacy Policy" })).toHaveAttribute("href", "/privacy");
+  });
+
+  test("refunds are 14 days and go through Paddle", async ({ page }) => {
+    await page.goto("/refunds");
+    await expect(page.getByRole("heading", { name: "1. 14-day refunds" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "paddle.net" })).toHaveAttribute("href", "https://paddle.net");
+  });
 });
 
 test("the retired 500 GB Pro tier is gone from the product", async ({ page }) => {

@@ -16,7 +16,7 @@ export function SiteFooter() {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-x-12 gap-y-6 sm:grid-cols-3">
+          <div className="grid grid-cols-2 gap-x-12 gap-y-6 sm:grid-cols-4">
             <FooterColumn title="Product">
               <FooterLink href="/#how-it-works">How it works</FooterLink>
               <FooterLink href="/#what-you-can-protect">What you can protect</FooterLink>
@@ -31,6 +31,12 @@ export function SiteFooter() {
 
             <FooterColumn title="Support">
               <FooterLink href="/#faq">Help</FooterLink>
+            </FooterColumn>
+
+            <FooterColumn title="Legal">
+              <FooterLink href="/terms">Terms of Service</FooterLink>
+              <FooterLink href="/privacy">Privacy Policy</FooterLink>
+              <FooterLink href="/refunds">Refund Policy</FooterLink>
             </FooterColumn>
           </div>
         </div>

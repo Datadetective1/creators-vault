@@ -25,9 +25,18 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       </main>
 
       <footer className="border-t border-ink-800 py-6">
-        <div className="container-page text-center text-xs text-muted">
+        <div className="container-page flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-muted">
           <Link href="/" className="transition-colors hover:text-cream-50">
             &larr; Back to {PRODUCT_NAME}
+          </Link>
+          <Link href="/terms" className="transition-colors hover:text-cream-50">
+            Terms
+          </Link>
+          <Link href="/privacy" className="transition-colors hover:text-cream-50">
+            Privacy
+          </Link>
+          <Link href="/refunds" className="transition-colors hover:text-cream-50">
+            Refunds
           </Link>
         </div>
       </footer>

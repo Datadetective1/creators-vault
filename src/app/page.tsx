@@ -332,7 +332,7 @@ function Pricing() {
               <h3 className="relative text-lg font-semibold text-cream-50">{creator.name}</h3>
               <p className="relative mt-1 text-sm text-muted">{creator.tagline}</p>
 
-              <p className="relative mt-6 flex items-baseline gap-1.5">
+              <p className="relative mt-6 flex flex-wrap items-baseline gap-x-0.5">
                 {/* Solid, not text-gradient: across two glyphs the ramp puts
                     a gold "$" beside a magenta "4". plan-picker.tsx renders the
                     same priceLabel in gold-400. */}
@@ -364,7 +364,16 @@ function Pricing() {
         <p className="mx-auto mt-8 max-w-2xl text-center text-sm text-muted">
           {billingLive
             ? "Pilot pricing is not final. Paid plans are billed through Paddle, our payment provider, with the price confirmed at checkout."
-            : "Pilot pricing is not final and no card is charged today. Paid plans will be billed through Paddle, our payment provider, with the price confirmed at checkout."}
+            : "Pilot pricing is not final and no card is charged today. Paid plans will be billed through Paddle, our payment provider, with the price confirmed at checkout."}{" "}
+          See our{" "}
+          <Link href="/terms" className="text-cream-300 underline underline-offset-2 hover:text-cream-50">
+            Terms
+          </Link>{" "}
+          and{" "}
+          <Link href="/refunds" className="text-cream-300 underline underline-offset-2 hover:text-cream-50">
+            Refund Policy
+          </Link>
+          .
         </p>
       </div>
     </section>
@@ -406,7 +415,7 @@ const FAQS = [
   },
   {
     q: "How do I pay?",
-    a: "Paid plans are handled by Paddle, which supports common payment methods for creators in India including UPI, as well as international cards.",
+    a: "Paid plans are handled by Paddle, which supports common payment methods for creators in India including UPI, as well as international cards. Prices do not include tax; Paddle adds any tax that applies where you live at checkout, before you pay.",
   },
 ];
 

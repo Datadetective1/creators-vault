@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { initializePaddle, type Paddle } from "@paddle/paddle-js";
 
@@ -146,7 +147,7 @@ export function PlanPicker({
                 )}
               </div>
 
-              <p className="mt-3 flex items-baseline gap-1.5">
+              <p className="mt-3 flex flex-wrap items-baseline gap-x-0.5">
                 <span className="text-2xl font-semibold tracking-tight text-gold-400">
                   {plan.priceLabel}
                 </span>
@@ -183,6 +184,20 @@ export function PlanPicker({
           );
         })}
       </div>
+
+      <p className="text-xs leading-relaxed text-muted">
+        Payments are processed by Paddle, our Merchant of Record. Prices exclude tax; any tax that
+        applies is shown at checkout before you pay. Creator renews monthly until you cancel, and
+        payments can be refunded within 14 days. See our{" "}
+        <Link href="/terms" className="text-cream-300 underline underline-offset-2 hover:text-cream-50">
+          Terms of Service
+        </Link>{" "}
+        and{" "}
+        <Link href="/refunds" className="text-cream-300 underline underline-offset-2 hover:text-cream-50">
+          Refund Policy
+        </Link>
+        .
+      </p>
     </div>
   );
 }

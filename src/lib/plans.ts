@@ -69,7 +69,9 @@ export const PLANS: Record<PlanTier, PlanDefinition> = {
     storageLimitBytes: 100 * GIB,
     storageLabel: "Up to 100 GB",
     priceLabel: "$4",
-    pricePeriod: "per month",
+    // The Paddle price is tax-exclusive, so checkout adds tax where it applies.
+    // Say so everywhere the price appears rather than surprising people there.
+    pricePeriod: "/month + applicable tax",
     tagline: "20 GB or 100 GB — the price is the same.",
     features: [
       "Up to 100 GB of private storage",

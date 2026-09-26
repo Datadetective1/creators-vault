@@ -44,6 +44,18 @@ export default function SignUpPage() {
         </AuthForm>
       </div>
 
+      <p className="mt-4 text-center text-xs leading-relaxed text-muted">
+        By creating an account you agree to our{" "}
+        <Link href="/terms" className="text-cream-300 underline underline-offset-2 hover:text-cream-50">
+          Terms of Service
+        </Link>{" "}
+        and{" "}
+        <Link href="/privacy" className="text-cream-300 underline underline-offset-2 hover:text-cream-50">
+          Privacy Policy
+        </Link>
+        .
+      </p>
+
       <p className="mt-6 text-center text-sm text-muted">
         Already have an account?{" "}
         <Link href="/login" className="font-medium text-gold-400 hover:text-gold-300">

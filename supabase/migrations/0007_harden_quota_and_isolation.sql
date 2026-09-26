@@ -525,6 +525,16 @@ revoke truncate, trigger on public.subscriptions      from anon, authenticated;
 revoke truncate, trigger on public.assets             from anon, authenticated;
 revoke truncate, trigger on public.checkout_sessions  from anon, authenticated;
 
+-- While here: /admin and the nonce purge work today only because Supabase's
+-- ALTER DEFAULT PRIVILEGES hands service_role EXECUTE on functions in public.
+-- 0003 and 0005 revoke from public/anon/authenticated and never re-grant, so
+-- the one role that must call them is relying on a platform default. Measured:
+-- rebuild the same schema without that default privilege and
+-- has_function_privilege('service_role', 'admin_pilot_stats()', 'EXECUTE') is
+-- false — /admin returns an error and nothing says why. Make it explicit.
+grant execute on function public.admin_pilot_stats() to service_role;
+grant execute on function public.purge_stale_checkout_sessions() to service_role;
+
 
 -- ---------------------------------------------------------------------------
 -- 9. display_name is a write primitive the quota never saw
@@ -574,6 +584,23 @@ end$$;
 --    Postgres does not remove the object from the bucket. Reclaiming the bytes
 --    has to go through the Storage API, so it belongs in the application's
 --    existing sweep, not here.
+--
+--  * A user can DELETE their own storage.objects rows directly, which zeroes
+--    their accounted usage while the bytes stay in the bucket — a row delete in
+--    Postgres has no S3-side effect. The "vault: delete own objects" policy has
+--    to stay: the application's own delete goes through the Storage API using
+--    the user's token, and that call is checked against this policy, so removing
+--    it would break legitimate deletion. Reclaiming orphaned bytes is what the
+--    sweep in src/lib/vault.ts exists for, and it is the only layer that can.
+--    The residue is under-counted usage, not unbounded storage — the quota is
+--    still enforced against real objects on the way in.
+--
+--  * TEMP on the database is left granted to anon and authenticated. It is the
+--    third leg of the trigger-attach escalation, but section 3 removed EXECUTE
+--    on the definer functions and section 8 removed TRIGGER on the tables, so
+--    the escalation is already closed twice over. Revoking TEMP needs the live
+--    database's real name and could affect other platform machinery, which is a
+--    poor trade for a third lock on a closed door.
 --
 --  * my_storage_usage() (assets-side) and user_stored_bytes() (storage-side)
 --    still disagree for objects that were never registered as assets, and the

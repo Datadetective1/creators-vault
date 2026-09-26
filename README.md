@@ -71,7 +71,7 @@ than erroring.
      ```sql
      select relrowsecurity from pg_class where oid='storage.objects'::regclass;   -- must be true
      select array_length(allowed_mime_types,1), 'image/svg+xml' = any(allowed_mime_types)
-       from storage.buckets where id='vault';                                     -- 33, false
+       from storage.buckets where id='vault';                                     -- 34, false
      ```
 
    `0007` closes a set of quota bypasses and cross-user leaks that were measured

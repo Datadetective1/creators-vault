@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { Logo, PRODUCT_NAME } from "@/components/brand";
+import { LEGAL } from "@/lib/legal";
 
 export function SiteFooter() {
   const year = new Date().getFullYear();
@@ -43,7 +44,8 @@ export function SiteFooter() {
 
         <div className="mt-10 flex flex-col gap-3 border-t border-ink-800 pt-6 text-xs text-muted sm:flex-row sm:items-center sm:justify-between">
           <p>
-            &copy; {year} {PRODUCT_NAME}. Early access pilot.
+            &copy; {year} {LEGAL.operatorName}. {PRODUCT_NAME} is operated by {LEGAL.operatorName}.
+            Early access pilot.
           </p>
           <p>Your files stay private. We never publish or share what you upload.</p>
         </div>

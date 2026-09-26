@@ -1,7 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { Detail, ExternalLink, LegalDocument, List, Operator, Section } from "@/components/legal";
+import {
+  Detail,
+  ExternalLink,
+  LegalDocument,
+  List,
+  Operator,
+  Proposed,
+  Section,
+} from "@/components/legal";
 import { LEGAL } from "@/lib/legal";
 
 export const metadata: Metadata = {
@@ -19,13 +27,14 @@ export default function TermsPage() {
     >
       <Section id="who" title="1. Who we are">
         <p>
-          {name} ({LEGAL.siteUrl}) is operated by <Operator />, registered in{" "}
-          <Detail field="operatorJurisdiction" />. In these terms, &ldquo;we&rdquo;,
-          &ldquo;us&rdquo; and &ldquo;our&rdquo; mean that operator, and &ldquo;you&rdquo; means
-          the person using {name}.
+          {name} ({LEGAL.siteUrl}) is a product and service operated by <Operator />, a limited
+          liability company registered in <Detail field="operatorJurisdiction" />. In these terms,
+          &ldquo;we&rdquo;, &ldquo;us&rdquo; and &ldquo;our&rdquo; mean <Operator />, and
+          &ldquo;you&rdquo; means the person using {name}.
         </p>
         <p>
-          You can contact us at <Detail field="contactEmail" />.
+          Our mailing address is <Detail field="mailingAddress" />. You can contact us at{" "}
+          <Detail field="contactEmail" />.
         </p>
       </Section>
 
@@ -49,8 +58,8 @@ export default function TermsPage() {
       <Section id="eligibility" title="3. Your account">
         <List>
           <li>
-            You must be at least 16 years old to use {name}, and old enough to enter a binding
-            contract where you live to buy a paid plan.
+            You must be at least <Proposed term="minimumAge" /> years old to use {name}, and old
+            enough to enter a binding contract where you live to buy a paid plan.
           </li>
           <li>Give us a real email address you control. We use it to confirm your account and to
             contact you about the service.</li>
@@ -91,8 +100,9 @@ export default function TermsPage() {
           it cannot be collected, your account moves to the Free plan.
         </p>
         <p>
-          We may change the price of a paid plan. If we do, we will email you at least 30 days
-          before the new price applies to you, and you can cancel before then.
+          We may change the price of a paid plan. If we do, we will email you at least{" "}
+          <Proposed term="priceChangeNoticeDays" /> before the new price applies to you, and you
+          can cancel before then.
         </p>
       </Section>
 
@@ -173,8 +183,8 @@ export default function TermsPage() {
         </p>
         <p>
           If we close your account for any reason other than a serious breach of these terms, we
-          will give you at least 30 days&rsquo; notice so you can download your files, and refund
-          any unused part of a paid period.
+          will give you at least <Proposed term="closureNoticeDays" /> notice so you can download
+          your files, and refund any unused part of a paid period.
         </p>
       </Section>
 
@@ -187,8 +197,7 @@ export default function TermsPage() {
         <p>
           To the extent the law allows, we are not liable for indirect or consequential losses,
           such as lost income or business opportunities, and our total liability to you for any
-          claim is limited to the amount you paid us in the 12 months before it arose, or US$50,
-          whichever is greater.
+          claim is limited to <Proposed term="liabilityCap" />.
         </p>
         <p>
           Nothing in these terms limits liability that cannot be limited by law, or takes away

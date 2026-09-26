@@ -1,6 +1,14 @@
 import type { Metadata } from "next";
 
-import { Detail, ExternalLink, LegalDocument, List, Operator, Section } from "@/components/legal";
+import {
+  Detail,
+  ExternalLink,
+  LegalDocument,
+  List,
+  Operator,
+  Proposed,
+  Section,
+} from "@/components/legal";
 import { LEGAL } from "@/lib/legal";
 
 export const metadata: Metadata = {
@@ -18,8 +26,13 @@ export default function PrivacyPage() {
     >
       <Section id="controller" title="1. Who is responsible for your data">
         <p>
-          <Operator /> is responsible for the personal data described here. For any privacy
-          question or request, contact <Detail field="contactEmail" />.
+          {name} is operated by <Operator />, a limited liability company registered in{" "}
+          <Detail field="operatorJurisdiction" />, which is responsible for the personal data
+          described here.
+        </p>
+        <p>
+          Our mailing address is <Detail field="mailingAddress" />. For any privacy question or
+          request, contact <Detail field="contactEmail" />.
         </p>
       </Section>
 
@@ -132,8 +145,9 @@ export default function PrivacyPage() {
         <List>
           <li>Your files stay until you delete them or close your account. When you delete a file,
             it is removed from active storage straight away.</li>
-          <li>When you close your account, we delete your account data and files within 30 days.
-            Encrypted backups kept by our providers may take a short while longer to expire.</li>
+          <li>When you close your account, we delete your account data and files within{" "}
+            <Proposed term="accountDeletionDays" />. Encrypted backups kept by our providers may
+            take a short while longer to expire.</li>
           <li>Paddle keeps payment and tax records for as long as the law requires.</li>
           <li>Technical logs are kept only for as long as needed to operate and secure the
             service.</li>
@@ -149,15 +163,16 @@ export default function PrivacyPage() {
         </p>
         <p>
           To use any of these rights, or to close your account, email{" "}
-          <Detail field="contactEmail" /> from the address you signed up with. We will reply within
-          30 days. If you are unhappy with our answer, you can complain to your local data
+          <Detail field="contactEmail" /> from the address you signed up with. We will reply within{" "}
+          <Proposed term="privacyResponseDays" />. If you are unhappy with our answer, you can complain to your local data
           protection authority.
         </p>
       </Section>
 
       <Section id="children" title="9. Children">
         <p>
-          {name} is not intended for anyone under 16, and we do not knowingly collect their data.
+          {name} is not intended for anyone under <Proposed term="minimumAge" />, and we do not
+          knowingly collect their data.
           If you believe a child has created an account, contact us and we will delete it.
         </p>
       </Section>

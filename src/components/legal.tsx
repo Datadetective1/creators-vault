@@ -1,6 +1,12 @@
 import Link from "next/link";
 
-import { LEGAL, PLACEHOLDER_LABELS, type LegalPlaceholderKey } from "@/lib/legal";
+import {
+  LEGAL,
+  PLACEHOLDER_LABELS,
+  PROPOSED_TERMS,
+  type LegalPlaceholderKey,
+  type ProposedTermKey,
+} from "@/lib/legal";
 
 /**
  * Building blocks for the policy pages. Plain, readable typography — these are
@@ -105,4 +111,22 @@ export function Detail({ field }: { field: LegalPlaceholderKey }) {
 /** The legal entity behind Creator Lock, or its marked placeholder. */
 export function Operator() {
   return <Detail field="operatorName" />;
+}
+
+/**
+ * A policy choice proposed during drafting that the business owner has not yet
+ * decided. Shown with a visible marker until it is confirmed in LEGAL config,
+ * so the page never presents an undecided term as settled.
+ */
+export function Proposed({ term }: { term: ProposedTermKey }) {
+  const { value, confirmed } = PROPOSED_TERMS[term];
+  if (confirmed) return <>{value}</>;
+  return (
+    <>
+      {value}{" "}
+      <mark className="rounded bg-gold-400/15 px-1 py-0.5 text-xs font-medium text-gold-300">
+        [proposed — pending confirmation]
+      </mark>
+    </>
+  );
 }

@@ -1,6 +1,14 @@
 import type { Metadata } from "next";
 
-import { Detail, ExternalLink, LegalDocument, List, Section } from "@/components/legal";
+import {
+  Detail,
+  ExternalLink,
+  LegalDocument,
+  List,
+  Operator,
+  Proposed,
+  Section,
+} from "@/components/legal";
 import { LEGAL } from "@/lib/legal";
 
 export const metadata: Metadata = {
@@ -10,20 +18,21 @@ export const metadata: Metadata = {
 
 export default function RefundsPage() {
   const name = LEGAL.productName;
-  const days = LEGAL.refundWindowDays;
 
   return (
     <LegalDocument
       title="Refund Policy"
       summary={`If ${name} is not right for you, we want refunds to be simple. Here is exactly how they work.`}
     >
-      <Section id="window" title={`1. ${days}-day refunds`}>
+      <Section id="window" title="1. Refund window">
         <p>
-          You can ask for a full refund of any Creator payment — your first one or a monthly
-          renewal — within {days} days of being charged. You do not need to give a reason.
+          {name} is operated by <Operator />. You can ask for a full refund of any Creator
+          payment — your first one or a monthly renewal — within{" "}
+          <Proposed term="refundWindowDays" /> days of being charged. You do not need to give a
+          reason.
         </p>
         <p>
-          After {days} days we do not refund the rest of a month you have started, but you can
+          After that window we do not refund the rest of a month you have started, but you can
           cancel at any time so you are not charged again. This does not affect any refund right
           you have under the law where you live.
         </p>

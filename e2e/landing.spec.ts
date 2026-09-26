@@ -51,12 +51,13 @@ test.describe("policies", () => {
       await expect(page).toHaveURL(new RegExp(`${policy.href}$`));
       await expect(page.getByRole("heading", { level: 1, name: policy.heading })).toBeVisible();
 
-      // No invented business details: anything unconfirmed is visibly marked,
-      // and nothing claims an inbox on a domain that cannot receive mail.
+      // No invented contact details: no creatorlock.app inbox accepts mail yet,
+      // so the page must not name one; the placeholder says what is missing.
       const body = (await page.textContent("main")) ?? "";
       expect(body).not.toMatch(/@creatorlock\.app/);
-      // The seller name Paddle shows has not been confirmed as the operator.
-      expect(body).not.toMatch(/meridian vertex/i);
+      await expect(
+        page.getByText("[To be confirmed: support and privacy contact email]").first(),
+      ).toBeVisible();
     });
   }
 
@@ -67,10 +68,35 @@ test.describe("policies", () => {
     await expect(agreement.getByRole("link", { name: "Privacy Policy" })).toHaveAttribute("href", "/privacy");
   });
 
-  test("refunds are 14 days and go through Paddle", async ({ page }) => {
+  test("refunds go through Paddle and the window is marked as proposed", async ({ page }) => {
     await page.goto("/refunds");
-    await expect(page.getByRole("heading", { name: "1. 14-day refunds" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "1. Refund window" })).toBeVisible();
+    await expect(page.getByText("[proposed — pending confirmation]").first()).toBeVisible();
     await expect(page.getByRole("link", { name: "paddle.net" })).toHaveAttribute("href", "https://paddle.net");
+  });
+
+  test("the operating company is named, with its address only where legally relevant", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.locator("footer")).toContainText("MERIDIAN VERTEX LLC");
+    expect((await page.textContent("body")) ?? "").not.toContain("MacArthur");
+
+    for (const href of ["/terms", "/privacy"]) {
+      await page.goto(href);
+      const main = (await page.textContent("main")) ?? "";
+      expect(main).toContain("MERIDIAN VERTEX LLC");
+      expect(main).toContain("Texas, United States");
+      expect(main).toContain("817 S MacArthur Blvd, Ste 115 #1040, Coppell, TX 75019, USA");
+    }
+
+    await page.goto("/refunds");
+    expect((await page.textContent("main")) ?? "").not.toContain("MacArthur");
+  });
+
+  test("undecided policy choices are never shown as settled", async ({ page }) => {
+    await page.goto("/terms");
+    // Minimum age, notice periods and the liability cap await a decision.
+    await expect(page.getByText("[proposed — pending confirmation]")).toHaveCount(4);
+    await expect(page.getByText(/governed by the laws of the State of Texas, United States\./)).toBeVisible();
   });
 });
 

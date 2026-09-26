@@ -1,5 +1,5 @@
 -- ===========================================================================
--- Creator Vault — private storage bucket + per-user object isolation
+-- Creator Lock — private storage bucket + per-user object isolation
 --
 -- Object key convention:  <user_id>/<random-uuid>.<ext>
 -- The first path segment IS the owner. Every policy below pins that segment

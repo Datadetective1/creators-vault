@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { Logo } from "@/components/brand";
+import { Logo, PRODUCT_NAME } from "@/components/brand";
 
 export function SiteFooter() {
   const year = new Date().getFullYear();
@@ -36,7 +36,9 @@ export function SiteFooter() {
         </div>
 
         <div className="mt-10 flex flex-col gap-3 border-t border-ink-800 pt-6 text-xs text-muted sm:flex-row sm:items-center sm:justify-between">
-          <p>&copy; {year} Creator Vault. Early access pilot.</p>
+          <p>
+            &copy; {year} {PRODUCT_NAME}. Early access pilot.
+          </p>
           <p>Your files stay private. We never publish or share what you upload.</p>
         </div>
       </div>

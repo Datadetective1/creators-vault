@@ -1,6 +1,6 @@
 "use client";
 
-import { LockMark } from "@/components/brand";
+import { LockMark, PRODUCT_NAME } from "@/components/brand";
 import { PLATFORMS } from "@/components/platform-icons";
 import { usePrefersReducedMotion } from "@/lib/use-reduced-motion";
 
@@ -122,7 +122,7 @@ export function PlatformLock({ className = "" }: { className?: string }) {
       <p className="sr-only">
         Work a creator publishes on Instagram, Snapchat, Telegram, YouTube and TikTok,
         kept as their own copy in a lock they control. Files are uploaded by the
-        creator; Creator Vault does not connect to these platforms.
+        creator; {PRODUCT_NAME} does not connect to these platforms.
       </p>
     </div>
   );

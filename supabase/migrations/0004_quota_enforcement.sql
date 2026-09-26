@@ -1,5 +1,5 @@
 -- ===========================================================================
--- Creator Vault — move quota and size enforcement into the database
+-- Creator Lock — move quota and size enforcement into the database
 --
 -- Every browser holds the anon key and the user's own JWT, so PostgREST and
 -- the Storage API are directly reachable. That makes the checks in the route

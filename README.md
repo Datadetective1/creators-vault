@@ -1,4 +1,4 @@
-# Creator Vault
+# Creator Lock
 
 > Your content is your business. Protect the work behind your brand.
 
@@ -39,11 +39,51 @@ than erroring.
    - `anon` `public` key → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - `service_role` key → `SUPABASE_SERVICE_ROLE_KEY` (server-only, never
      expose this to the browser)
-3. **SQL Editor**, run every file in `supabase/migrations/` in numeric order:
-   `0001_init.sql`, `0002_storage.sql`, `0003_admin_stats.sql`,
-   `0004_quota_enforcement.sql`, `0005_checkout_sessions.sql`.
-   These create the tables, all RLS policies, the private `vault` bucket, and
-   the triggers that enforce size and quota in the database.
+3. **SQL Editor**, run every file in `supabase/migrations/` in numeric order,
+   **as eight separate executions** — `0001_init.sql`, `0002_storage.sql`,
+   `0003_admin_stats.sql`, `0004_quota_enforcement.sql`,
+   `0005_checkout_sessions.sql`, `0006_retire_pro_plan.sql`,
+   `0007_harden_quota_and_isolation.sql`,
+   `0008_storage_hardening_hosted.sql`.
+
+   They create the tables, all RLS policies, the private `vault` bucket, and the
+   triggers that enforce size and quota in the database.
+
+   Separate executions matter: a multi-statement send is one implicit
+   transaction, so a failure in a later file would silently discard the earlier
+   ones.
+
+   Two things to check rather than assume, because both can fail quietly:
+
+   - `storage.objects` and `storage.buckets` belong to `supabase_storage_admin`,
+     so some of what `0002`, `0004` and `0007` do there can be refused. Measured
+     on the live project: `postgres` is **not** a member of that role, yet
+     `CREATE POLICY` and `CREATE TRIGGER` on `storage.objects` both still
+     succeed — only `ALTER TABLE ... ENABLE ROW LEVEL SECURITY` fails. `0008`
+     exists for exactly that one statement, which is why it must be applied.
+
+     Do **not** try `set role supabase_storage_admin;` as a workaround — with
+     `postgres` not a member, that statement fails with 42501 too. If the
+     bucket write in `0002` is refused, create the bucket through
+     **Storage → New bucket** instead.
+
+     ```sql
+     select pg_has_role(current_user,'supabase_storage_admin','USAGE') as can_act_as_storage_admin,
+            has_table_privilege('storage.buckets','INSERT')            as can_write_buckets;
+     ```
+
+   - A refused `UPDATE` under RLS raises no error, it just matches zero rows, so
+     `0004`'s MIME allowlist can fail silently. Afterwards confirm:
+
+     ```sql
+     select relrowsecurity from pg_class where oid='storage.objects'::regclass;   -- must be true
+     select array_length(allowed_mime_types,1), 'image/svg+xml' = any(allowed_mime_types)
+       from storage.buckets where id='vault';                                     -- 34, false
+     ```
+
+   `0007` closes a set of quota bypasses and cross-user leaks that were measured
+   against `0001..0006`; `supabase/tests/` holds the harness that proves it, and
+   `supabase/tests/README.md` explains how to run it locally.
 4. **Authentication → URL Configuration**: set Site URL to your deployed origin
    and add `<origin>/auth/callback` to Redirect URLs.
 

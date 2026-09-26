@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { Logo } from "@/components/brand";
+import { Logo, PRODUCT_NAME } from "@/components/brand";
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -27,7 +27,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       <footer className="border-t border-ink-800 py-6">
         <div className="container-page text-center text-xs text-muted">
           <Link href="/" className="transition-colors hover:text-cream-50">
-            &larr; Back to Creator Vault
+            &larr; Back to {PRODUCT_NAME}
           </Link>
         </div>
       </footer>

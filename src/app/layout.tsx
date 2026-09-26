@@ -1,17 +1,19 @@
 import type { Metadata, Viewport } from "next";
 
+import { PRODUCT_NAME } from "@/lib/brand";
+
 import "./globals.css";
 
 export const metadata: Metadata = {
-  // "Creator Vault" is a PLACEHOLDER name — see src/components/brand.tsx.
+  // The name is a WORKING name, not final branding — see src/lib/brand.ts.
   title: {
-    default: "Creator Vault — Secure your content from platform censorship",
-    template: "%s · Creator Vault",
+    default: `${PRODUCT_NAME} — Secure your content from platform censorship`,
+    template: `%s · ${PRODUCT_NAME}`,
   },
   description:
     "Upload, secure and retrieve your own copy of the videos, photos and files your business is built on. Secure your content from platform censorship and shifting regulations.",
   openGraph: {
-    title: "Creator Vault — Secure your content from platform censorship",
+    title: `${PRODUCT_NAME} — Secure your content from platform censorship`,
     description:
       "Upload. Secure. Retrieve anytime. Keep a private, independent copy of the content your business depends on.",
     type: "website",

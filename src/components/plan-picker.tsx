@@ -28,6 +28,9 @@ export function PlanPicker({
   const paddleRef = useRef<Paddle | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loadingTier, setLoadingTier] = useState<PlanTier | null>(null);
+  // Paid buttons stay disabled until Paddle.js is ready, so a quick click
+  // cannot land before the overlay exists.
+  const [checkoutReady, setCheckoutReady] = useState(false);
 
   useEffect(() => {
     if (!paddleReady || !clientToken) return;
@@ -38,7 +41,10 @@ export function PlanPicker({
       environment: environment === "production" ? "production" : "sandbox",
     })
       .then((instance) => {
-        if (!cancelled && instance) paddleRef.current = instance;
+        if (!cancelled && instance) {
+          paddleRef.current = instance;
+          setCheckoutReady(true);
+        }
       })
       .catch(() => {
         if (!cancelled) setError("Checkout could not be loaded. Please refresh and try again.");
@@ -81,7 +87,13 @@ export function PlanPicker({
         items: [{ priceId: body.priceId, quantity: 1 }],
         customer: customerEmail ? { email: customerEmail } : undefined,
         customData: body.customData,
-        settings: { displayMode: "overlay", theme: "dark" },
+        settings: {
+          displayMode: "overlay",
+          theme: "dark",
+          // Back to the plan page once paid. The plan itself only changes when
+          // the verified webhook lands; the page explains that while it waits.
+          successUrl: `${window.location.origin}/dashboard/billing?checkout=complete`,
+        },
       });
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Could not start checkout.");
@@ -148,7 +160,13 @@ export function PlanPicker({
               <button
                 type="button"
                 onClick={() => choosePlan(tier)}
-                disabled={isCurrent || tier === "free" || !paddleReady || loadingTier !== null}
+                disabled={
+                  isCurrent ||
+                  tier === "free" ||
+                  !paddleReady ||
+                  !checkoutReady ||
+                  loadingTier !== null
+                }
                 className={isCurrent ? "btn-secondary mt-5 w-full" : "btn-primary mt-5 w-full"}
               >
                 {isCurrent
@@ -157,7 +175,9 @@ export function PlanPicker({
                     ? "Included"
                     : loadingTier === tier
                       ? "Opening…"
-                      : `Switch to ${plan.name}`}
+                      : paddleReady && !checkoutReady
+                        ? "Loading checkout…"
+                        : `Switch to ${plan.name}`}
               </button>
             </div>
           );

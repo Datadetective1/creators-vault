@@ -54,7 +54,9 @@ async function readSubscription(
 ): Promise<SubscriptionRow | null> {
   const { data } = await supabase
     .from("subscriptions")
-    .select("plan, status, current_period_end, paddle_subscription_id, paddle_customer_id")
+    .select(
+      "plan, status, current_period_end, scheduled_cancel_at, paddle_subscription_id, paddle_customer_id",
+    )
     .eq("user_id", userId)
     .maybeSingle();
   return (data as SubscriptionRow | null) ?? null;
@@ -94,6 +96,7 @@ export async function getVaultSummary(
     plan,
     status: subscription?.status ?? "active",
     currentPeriodEnd: subscription?.current_period_end ?? null,
+    scheduledCancelAt: subscription?.scheduled_cancel_at ?? null,
     usedBytes: usage.usedBytes,
     fileCount: usage.fileCount,
     limitBytes,

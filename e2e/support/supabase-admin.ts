@@ -50,7 +50,9 @@ export type TestUser = { id: string; email: string; password: string };
  * A confirmed account with a unique address.
  *
  * `.test` is reserved by RFC 2606, so the address can never belong to a real
- * person or receive mail; the admin API accepts it because it sends none.
+ * person. The admin API sends no email for it. Only use these addresses where
+ * no mail is sent: anything that triggers a real email must use a deliverable
+ * test inbox instead, or the bounce is charged to the sending domain.
  */
 export async function createTestUser(label: string): Promise<TestUser> {
   const email = `e2e-${label}-${randomUUID().slice(0, 12)}@creatorlock.test`;

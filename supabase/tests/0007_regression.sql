@@ -26,6 +26,13 @@ begin
     ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', 'b@test.invalid', '{}');
 end$$;
 
+-- Since 0011 an upload needs current Terms/Privacy/upload-rights acceptance.
+-- This suite is about quota and isolation, so both users have accepted.
+-- (0011_consent.sql covers the gate itself.)
+insert into public.legal_acceptances (user_id, consent_type, version)
+select u.id, d.consent_type, d.current_version
+from auth.users u cross join public.legal_documents d;
+
 -- B holds 2048 real bytes, so cross-user probes have something to find.
 insert into storage.objects (bucket_id, name, metadata)
 values ('vault', 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/b1.png', '{"size":2048,"mimetype":"image/png"}');

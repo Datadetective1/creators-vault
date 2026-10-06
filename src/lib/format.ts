@@ -1,3 +1,5 @@
+import type { Locale } from "@/lib/i18n/locales";
+
 const UNITS = ["B", "KB", "MB", "GB", "TB"] as const;
 
 /** Human-readable byte size, base-1024 with SI-style labels. */
@@ -12,10 +14,13 @@ export function formatBytes(bytes: number, decimals = 1): string {
   return `${value.toFixed(exponent === 0 ? 0 : decimals)} ${unit}`;
 }
 
-export function formatDate(input: string | Date): string {
+const DATE_LOCALE: Record<Locale, string> = { en: "en-IN", hi: "hi-IN", bn: "bn-BD" };
+
+/** Day, short month and year in the visitor's language ("6 Oct 2026" in English). */
+export function formatDate(input: string | Date, locale: Locale = "en"): string {
   const date = typeof input === "string" ? new Date(input) : input;
   if (Number.isNaN(date.getTime())) return "—";
-  return new Intl.DateTimeFormat("en-IN", {
+  return new Intl.DateTimeFormat(DATE_LOCALE[locale], {
     day: "numeric",
     month: "short",
     year: "numeric",

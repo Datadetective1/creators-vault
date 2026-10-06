@@ -4,13 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 
 import { Logo } from "@/components/brand";
-
-const LINKS = [
-  { href: "/#how-it-works", label: "How It Works" },
-  { href: "/#what-you-can-protect", label: "What You Can Protect" },
-  { href: "/pricing", label: "Pricing" },
-  { href: "/#faq", label: "FAQ" },
-];
+import { LanguageSelect } from "@/components/language-select";
+import { useI18n } from "@/lib/i18n/client";
 
 /**
  * Transparent over the hero, frosted once the page scrolls — so the media
@@ -18,6 +13,13 @@ const LINKS = [
  */
 export function SiteNav({ signedIn = false }: { signedIn?: boolean }) {
   const [scrolled, setScrolled] = useState(false);
+  const { t } = useI18n();
+  const links = [
+    { href: "/#how-it-works", label: t.common.nav.howItWorks },
+    { href: "/#what-you-can-protect", label: t.common.nav.whatYouCanProtect },
+    { href: "/pricing", label: t.common.nav.pricing },
+    { href: "/#faq", label: t.common.nav.faq },
+  ];
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 16);
@@ -32,15 +34,15 @@ export function SiteNav({ signedIn = false }: { signedIn?: boolean }) {
         scrolled ? "glass border-b border-white/5" : "border-b border-transparent"
       }`}
     >
-      <nav aria-label="Main" className="container-page flex h-16 items-center justify-between gap-4">
+      <nav aria-label={t.common.nav.main} className="container-page flex h-16 items-center justify-between gap-4">
         <Logo />
 
-        <div className="hidden items-center gap-7 lg:flex">
-          {LINKS.map((link) => (
+        <div className="hidden items-center gap-4 lg:flex xl:gap-7">
+          {links.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className="text-sm font-medium text-cream-300 transition-colors hover:text-cream-50"
+              className="whitespace-nowrap text-sm font-medium text-cream-300 transition-colors hover:text-cream-50"
             >
               {link.label}
             </Link>
@@ -48,20 +50,24 @@ export function SiteNav({ signedIn = false }: { signedIn?: boolean }) {
         </div>
 
         <div className="flex items-center gap-2">
+          <LanguageSelect compact />
           {signedIn ? (
             <Link href="/dashboard" className="btn-primary whitespace-nowrap px-4 py-2 text-xs sm:px-5 sm:py-2.5 sm:text-sm">
-              Go to my vault
+              {t.common.nav.goToFiles}
             </Link>
           ) : (
             <>
-              <Link href="/login" className="btn-ghost hidden sm:inline-flex">
-                Login
+              <Link href="/login" className="btn-ghost hidden whitespace-nowrap sm:inline-flex">
+                {t.common.nav.login}
               </Link>
               <Link
                 href="/signup"
                 className="btn-primary whitespace-nowrap px-3.5 py-2 text-xs sm:px-5 sm:py-2.5 sm:text-sm"
               >
-                Protect My Content
+                {/* The full call to action does not fit beside the logo on the
+                    narrowest phones in every language; a short label does. */}
+                <span className="hidden min-[420px]:inline">{t.common.nav.signupCta}</span>
+                <span className="min-[420px]:hidden">{t.common.nav.signupCtaShort}</span>
               </Link>
             </>
           )}

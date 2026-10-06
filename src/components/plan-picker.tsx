@@ -1,11 +1,23 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { initializePaddle, type Paddle } from "@paddle/paddle-js";
 
+import { apiErrorMessage } from "@/lib/api-errors";
+import { fmt } from "@/lib/i18n";
+import { useI18n } from "@/lib/i18n/client";
 import { LEGAL } from "@/lib/legal";
 import { PLAN_ORDER, PLANS, type PlanTier } from "@/lib/plans";
+
+/** A failure whose message is already in the visitor's language. */
+class ShownError extends Error {}
+
+/**
+ * Stored in `error` when Paddle.js fails to load; translated at render time so
+ * the effect below does not depend on the dictionary.
+ */
+const LOAD_FAILED = "load_failed";
 
 /**
  * Plan selection, backed by Paddle Checkout.
@@ -30,6 +42,8 @@ export function PlanPicker({
   /** The signed-in user's Paddle customer id (ctm_…), once they have one. */
   paddleCustomerId: string | null;
 }) {
+  const { t } = useI18n();
+  const d = t.dashboard;
   const paddleRef = useRef<Paddle | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loadingTier, setLoadingTier] = useState<PlanTier | null>(null);
@@ -55,7 +69,7 @@ export function PlanPicker({
         }
       })
       .catch(() => {
-        if (!cancelled) setError("Checkout could not be loaded. Please refresh and try again.");
+        if (!cancelled) setError(LOAD_FAILED);
       });
 
     return () => {
@@ -82,14 +96,15 @@ export function PlanPicker({
         priceId?: string;
         customData?: Record<string, unknown>;
         error?: string;
+        code?: string;
       };
 
       if (!response.ok || !body.priceId) {
-        throw new Error(body.error ?? "Could not start checkout.");
+        throw new ShownError(apiErrorMessage(t, body.code, d.planPicker.startFailed));
       }
 
       const paddle = paddleRef.current;
-      if (!paddle) throw new Error("Checkout is still loading. Please try again in a moment.");
+      if (!paddle) throw new ShownError(d.planPicker.stillLoading);
 
       paddle.Checkout.open({
         items: [{ priceId: body.priceId, quantity: 1 }],
@@ -104,7 +119,7 @@ export function PlanPicker({
         },
       });
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Could not start checkout.");
+      setError(cause instanceof ShownError ? cause.message : d.planPicker.startFailed);
     } finally {
       setLoadingTier(null);
     }
@@ -117,8 +132,7 @@ export function PlanPicker({
           role="status"
           className="rounded-xl border border-gold-400/40 bg-gold-400/10 px-4 py-3 text-sm text-gold-300"
         >
-          Paid plans are not switched on for this deployment yet. Your vault works on the Free
-          plan in the meantime.
+          {d.planPicker.notEnabled}
         </p>
       )}
 
@@ -127,13 +141,14 @@ export function PlanPicker({
           role="alert"
           className="rounded-xl border border-rose-400/40 bg-rose-400/10 px-4 py-3 text-sm text-rose-400"
         >
-          {error}
+          {error === LOAD_FAILED ? d.planPicker.loadFailed : error}
         </p>
       )}
 
       <div className="grid gap-4 sm:grid-cols-2">
         {PLAN_ORDER.map((tier) => {
           const plan = PLANS[tier];
+          const copy = t.pricing.plans[tier];
           const isCurrent = tier === currentTier;
 
           return (
@@ -146,24 +161,24 @@ export function PlanPicker({
               }
             >
               <div className="flex items-center justify-between gap-2">
-                <h3 className="text-base font-semibold text-cream-50">{plan.name}</h3>
+                <h3 className="text-base font-semibold text-cream-50">{copy.name}</h3>
                 {isCurrent && (
                   <span className="rounded-full bg-gold-400 px-2.5 py-0.5 text-xs font-semibold text-ink-950">
-                    Current
+                    {d.planPicker.current}
                   </span>
                 )}
               </div>
 
               <p className="mt-3 flex flex-wrap items-baseline gap-x-0.5">
                 <span className="text-2xl font-semibold tracking-tight text-gold-400">
-                  {plan.priceLabel}
+                  {tier === "free" ? t.pricing.plans.free.priceLabel : plan.priceLabel}
                 </span>
-                {plan.pricePeriod && (
-                  <span className="text-sm text-muted">{plan.pricePeriod}</span>
+                {tier === "creator" && (
+                  <span className="text-sm text-muted">{t.pricing.plans.creator.pricePeriod}</span>
                 )}
               </p>
-              <p className="text-sm text-cream-300">{plan.storageLabel}</p>
-              <p className="mt-1 text-sm text-muted">{plan.tagline}</p>
+              <p className="text-sm text-cream-300">{copy.storageLabel}</p>
+              <p className="mt-1 text-sm text-muted">{copy.tagline}</p>
 
               <button
                 type="button"
@@ -178,14 +193,14 @@ export function PlanPicker({
                 className={isCurrent ? "btn-secondary mt-5 w-full" : "btn-primary mt-5 w-full"}
               >
                 {isCurrent
-                  ? "Your plan"
+                  ? d.planPicker.yourPlan
                   : tier === "free"
-                    ? "Included"
+                    ? d.planPicker.included
                     : loadingTier === tier
-                      ? "Opening…"
+                      ? d.planPicker.opening
                       : paddleReady && !checkoutReady
-                        ? "Loading checkout…"
-                        : `Switch to ${plan.name}`}
+                        ? d.planPicker.loadingCheckout
+                        : fmt(d.planPicker.switchTo, { plan: copy.name })}
               </button>
             </div>
           );
@@ -193,30 +208,39 @@ export function PlanPicker({
       </div>
 
       <p className="text-xs leading-relaxed text-muted">
-        Payments are processed by Paddle, our Merchant of Record. Prices exclude tax; any tax that
-        applies is shown at checkout before you pay. Creator renews monthly until you cancel, and
-        any payment can be refunded within 14 days. See our{" "}
-        <Link href="/terms" className="text-cream-300 underline underline-offset-2 hover:text-cream-50">
-          Terms of Service
-        </Link>{" "}
-        and{" "}
-        <Link href="/refunds" className="text-cream-300 underline underline-offset-2 hover:text-cream-50">
-          Refund Policy
-        </Link>
-        .{" "}
-        {LEGAL.billingEmail && (
-          <>
-            Billing questions:{" "}
-            <a
-              href={`mailto:${LEGAL.billingEmail}`}
-              className="text-cream-300 underline underline-offset-2 hover:text-cream-50"
-            >
-              {LEGAL.billingEmail}
-            </a>
-            .
-          </>
-        )}
+        {renderTemplate(d.planPicker.legalNote, {
+          plan: t.pricing.plans.creator.name,
+          terms: (
+            <Link href="/terms" className="text-cream-300 underline underline-offset-2 hover:text-cream-50">
+              {t.common.legalLinks.terms}
+            </Link>
+          ),
+          refunds: (
+            <Link href="/refunds" className="text-cream-300 underline underline-offset-2 hover:text-cream-50">
+              {t.common.legalLinks.refunds}
+            </Link>
+          ),
+        })}{" "}
+        {LEGAL.billingEmail &&
+          renderTemplate(d.planPicker.billingQuestions, {
+            email: (
+              <a
+                href={`mailto:${LEGAL.billingEmail}`}
+                className="text-cream-300 underline underline-offset-2 hover:text-cream-50"
+              >
+                {LEGAL.billingEmail}
+              </a>
+            ),
+          })}
       </p>
     </div>
   );
+}
+
+/** Like fmt(), but placeholders may be React nodes (links). */
+function renderTemplate(template: string, values: Record<string, React.ReactNode>) {
+  return template.split(/(\{\w+\})/g).map((part, index) => {
+    const key = /^\{(\w+)\}$/.exec(part)?.[1];
+    return <Fragment key={index}>{key !== undefined && key in values ? values[key] : part}</Fragment>;
+  });
 }

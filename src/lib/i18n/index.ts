@@ -1,30 +1,40 @@
 /**
  * Dictionary access.
  *
- * One lookup point so a future locale is a file plus a registry flag, not a
- * hunt through components. Only ready locales resolve to their own dictionary;
- * everything else falls back to English rather than rendering blanks or
- * half-translated pages.
+ * Every locale's messages live under ./messages/<locale>/<namespace>.ts. The
+ * English file of each namespace defines the shape; the Hindi and Bangla files
+ * are annotated with that type, so a missing or misnamed key is a type error
+ * rather than a blank on screen.
  */
 
-import { en } from "./en";
-import { DEFAULT_LOCALE, LOCALE_META, type Locale } from "./locales";
+import { en } from "./messages/en";
+import { hi } from "./messages/hi";
+import { bn } from "./messages/bn";
+import { DEFAULT_LOCALE, type Locale } from "./locales";
 
-import type { Dictionary } from "./en";
+import type { Messages } from "./messages/en";
 
-const DICTIONARIES: Partial<Record<Locale, Dictionary>> = {
-  en,
-  // hi: ..., bn: ...  — add alongside LOCALE_META[...].ready = true.
-};
+const DICTIONARIES: Record<Locale, Messages> = { en, hi, bn };
 
-export function getDictionary(locale: Locale = DEFAULT_LOCALE): Dictionary {
-  if (LOCALE_META[locale]?.ready) {
-    const dictionary = DICTIONARIES[locale];
-    if (dictionary) return dictionary;
-  }
-  return en;
+export function getDictionary(locale: Locale = DEFAULT_LOCALE): Messages {
+  return DICTIONARIES[locale] ?? en;
 }
 
-export type { Dictionary };
-export { DEFAULT_LOCALE, LOCALE_META, LOCALES, isLocale, readyLocales } from "./locales";
+/** Replace `{name}` placeholders. Unknown placeholders are left as written. */
+export function fmt(template: string, values: Record<string, string | number>): string {
+  return template.replace(/\{(\w+)\}/g, (match, key: string) =>
+    key in values ? String(values[key]) : match,
+  );
+}
+
+export type { Messages };
+export type { LandingMessages } from "./messages/en/landing";
+export {
+  DEFAULT_LOCALE,
+  LOCALE_COOKIE,
+  LOCALE_META,
+  LOCALES,
+  isLocale,
+  localeFromAcceptLanguage,
+} from "./locales";
 export type { Locale, LocaleMeta } from "./locales";

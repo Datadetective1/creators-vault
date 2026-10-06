@@ -9,16 +9,18 @@
  *   hero.equation, hero.support, hero.steps, risk.*, solution.heading,
  *   solution.*.title, steps.items
  *
- * A translator adds a sibling (hi.ts, bn.ts) annotated `: Dictionary` and
- * registers it in index.ts. The shape is declared explicitly rather than
+ * A translation is a sibling file (../hi/landing.ts, ../bn/landing.ts)
+ * annotated `: LandingMessages`. The shape is declared explicitly rather than
  * inferred from the English object — inferring it with `as const` would give
- * every field a *literal* type, so the only value assignable to `Dictionary`
+ * every field a *literal* type, so the only value assignable to the type
  * would be the English text itself and no translation could ever compile.
  */
 
 import { PRODUCT_NAME } from "@/lib/brand";
+import type { MediaKind } from "@/lib/media";
+import { PLANS } from "@/lib/plans";
 
-export interface Dictionary {
+export interface LandingMessages {
   hero: {
     eyebrow: string;
     equation: readonly string[];
@@ -27,12 +29,20 @@ export interface Dictionary {
     ctaPrimary: string;
     ctaPrimarySignedIn: string;
     ctaSecondary: string;
+    /** Chip floating over the hero collage. */
+    protectedChip: string;
   };
   marquee: {
+    /** Accessible name of the marquee band. */
+    ariaLabel: string;
     lead: string;
     disclaimer: string;
     /** Short qualifier shown with the platform marks in the hero. */
     heroNote: string;
+  };
+  /** Screen-reader description of the platforms-into-the-lock animation. */
+  platformLock: {
+    summary: string;
   };
   risk: {
     eyebrow: string;
@@ -48,10 +58,44 @@ export interface Dictionary {
     heading: string;
     intro: string;
     items: readonly { number: string; label: string; body: string }[];
+    /** Chips inside the step illustrations. */
+    securedBadge: string;
+    downloadBadge: string;
+  };
+  contentWall: {
+    eyebrow: string;
+    heading: string;
+    intro: string;
+    /** `{row}` and `{total}` are filled in. */
+    railLabel: string;
+    swipeHint: string;
+  };
+  /**
+   * The content-wall catalogue lives in src/lib/media.ts with English alt
+   * text. `kinds` labels the chip on each tile; `alts` is keyed by the tile's
+   * `src`, and a missing entry falls back to the English alt.
+   */
+  media: {
+    kinds: Record<MediaKind, string>;
+    alts: Record<string, string>;
+  };
+  trust: {
+    /** Order matches the lock / download / sliders icons. */
+    items: readonly { title: string; body: string }[];
+  };
+  faq: {
+    eyebrow: string;
+    heading: string;
+    items: readonly { q: string; a: string }[];
+  };
+  finalCta: {
+    heading: string;
+    body: string;
+    login: string;
   };
 }
 
-export const en: Dictionary = {
+export const landing: LandingMessages = {
   hero: {
     eyebrow: "Early access for creators",
     /** VERBATIM — Ravi's three lines, in order. */
@@ -61,11 +105,13 @@ export const en: Dictionary = {
     /** VERBATIM — reads as a process: Upload → Secure → Retrieve anytime. */
     steps: ["Upload", "Secure", "Retrieve anytime"],
     ctaPrimary: "Protect My Content",
-    ctaPrimarySignedIn: "Go to my vault",
+    ctaPrimarySignedIn: "Go to my files",
     ctaSecondary: "See how it works",
+    protectedChip: "Protected in your private library",
   },
 
   marquee: {
+    ariaLabel: "Platforms this is built for",
     /**
      * Truthful framing only. Ravi sketched "Join thousands of other content
      * creators from other major platforms" — we have no verified user count, so
@@ -82,6 +128,14 @@ export const en: Dictionary = {
      * screen with the picture, not three sections below it.
      */
     heroNote: `You upload your own copies. ${PRODUCT_NAME} never connects to these platforms.`,
+  },
+
+  platformLock: {
+    /**
+     * The animation reads as an import, so the description says whose copies
+     * these are and states the denial here rather than leaving it to the FAQ.
+     */
+    summary: `Work a creator publishes on Instagram, Snapchat, Telegram, YouTube and TikTok, kept as their own copy in a lock they control. Files are uploaded by the creator; ${PRODUCT_NAME} does not connect to these platforms.`,
   },
 
   risk: {
@@ -166,5 +220,90 @@ export const en: Dictionary = {
         body: "The creator can access and retrieve the content later.",
       },
     ],
+    securedBadge: "Secured",
+    downloadBadge: "Download",
+  },
+
+  contentWall: {
+    eyebrow: "What you can protect",
+    heading: "All of this can live in your private library.",
+    intro: "Video, photos, audio, artwork, documents — whatever your business would miss.",
+    railLabel: "Content you can protect, row {row} of {total}",
+    swipeHint: "Swipe or scroll to see more →",
+  },
+
+  media: {
+    kinds: {
+      Reel: "Reel",
+      Video: "Video",
+      Photo: "Photo",
+      Podcast: "Podcast",
+      Thumbnail: "Thumbnail",
+      "Brand Kit": "Brand Kit",
+      Script: "Script",
+    },
+    // English alt text is the catalogue's own; nothing to override.
+    alts: {},
+  },
+
+  trust: {
+    items: [
+      {
+        title: "Private by default",
+        body: "Your files are yours alone. No other user can list, open or download them.",
+      },
+      {
+        title: "Yours to download",
+        body: "Every file comes back out whenever you want it, in the format you put in.",
+      },
+      {
+        title: "You control what is stored",
+        body: "Upload what matters, delete what does not. Nothing is kept without you choosing it.",
+      },
+    ],
+  },
+
+  faq: {
+    eyebrow: "FAQ",
+    heading: "Questions creators ask first.",
+    items: [
+      {
+        q: "Does this automatically back up my Instagram or YouTube?",
+        a: `No. ${PRODUCT_NAME} does not connect to social platforms and does not import anything automatically. You choose the files you want protected and upload them yourself.`,
+      },
+      {
+        q: "Can anyone else see my files?",
+        a: "No. Your files are private. They are stored in a private location and each file is locked to your account, so no other user can list, open or download them.",
+      },
+      {
+        q: "What kinds of files can I upload?",
+        a: "Videos, photos, thumbnails, audio, PDFs and documents, plus text files like scripts and subtitles. Individual files can be up to 5 GB.",
+      },
+      {
+        q: "Can I download my files whenever I want?",
+        a: "Yes. Every file you upload can be downloaded at any time, and you can delete anything permanently whenever you choose.",
+      },
+      {
+        q: "What happens if I stop paying?",
+        a: "Your account moves back to the Free plan allowance. You keep access to your files and can still download them.",
+      },
+      {
+        q: "How do I pay?",
+        /**
+         * Facts only: Paddle is the Merchant of Record; India accepts cards
+         * and PayPal, NOT UPI; the Creator plan is billed in US dollars; the
+         * checkout price already includes tax in India (18% GST) and
+         * Bangladesh, while some other countries (e.g. the US) add it at
+         * checkout. An earlier version claimed UPI — do not bring it back.
+         */
+        a: `Payments are processed by Paddle, our Merchant of Record. In India you can pay by card or PayPal — UPI is not supported. The Creator plan is billed in US dollars at ${PLANS.creator.priceLabel} a month. In India and Bangladesh, the price shown at checkout already includes any applicable tax (18% GST in India). In some other countries, such as the US, tax is added at checkout before you pay.`,
+      },
+    ],
+  },
+
+  finalCta: {
+    heading: "Keep your own copy of your best work.",
+    body: "Upload what matters. Get it back whenever you need it.",
+    login: "I already have an account",
   },
 };

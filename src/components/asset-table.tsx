@@ -4,16 +4,11 @@ import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
+import { apiErrorMessage } from "@/lib/api-errors";
 import { fileKind, formatBytes, formatDate } from "@/lib/format";
+import { fmt } from "@/lib/i18n";
+import { useI18n } from "@/lib/i18n/client";
 import type { AssetRow } from "@/lib/types";
-
-const KIND_LABEL: Record<ReturnType<typeof fileKind>, string> = {
-  image: "Photo",
-  video: "Video",
-  audio: "Audio",
-  document: "Document",
-  other: "File",
-};
 
 export function AssetTable({
   assets,
@@ -22,15 +17,15 @@ export function AssetTable({
   assets: AssetRow[];
   emptyHint?: boolean;
 }) {
+  const { locale, t } = useI18n();
+  const d = t.dashboard.table;
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function handleDelete(asset: AssetRow) {
-    const confirmed = window.confirm(
-      `Delete "${asset.filename}" permanently? This cannot be undone.`,
-    );
+    const confirmed = window.confirm(fmt(d.confirmDelete, { name: asset.filename }));
     if (!confirmed) return;
 
     setError(null);
@@ -39,12 +34,13 @@ export function AssetTable({
     try {
       const response = await fetch(`/api/assets/${asset.id}`, { method: "DELETE" });
       if (!response.ok) {
-        const body = (await response.json().catch(() => ({}))) as { error?: string };
-        throw new Error(body.error ?? "Could not delete that file.");
+        const body = (await response.json().catch(() => ({}))) as { code?: string };
+        setError(apiErrorMessage(t, body.code, d.deleteFailed));
+        return;
       }
       startTransition(() => router.refresh());
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Could not delete that file.");
+    } catch {
+      setError(d.deleteFailed);
     } finally {
       setDeletingId(null);
     }
@@ -53,14 +49,14 @@ export function AssetTable({
   if (assets.length === 0) {
     return (
       <div className="rounded-2xl border border-dashed border-ink-600 bg-ink-850/50 px-6 py-12 text-center">
-        <p className="text-base font-medium text-cream-50">Your vault is empty</p>
+        <p className="text-base font-medium text-cream-50">{d.emptyTitle}</p>
         {emptyHint && (
           <p className="mx-auto mt-2 max-w-sm text-sm text-muted">
-            Upload the videos, photos and files your business would miss most.
+            {d.emptyHint}
           </p>
         )}
         <Link href="/dashboard/upload" className="btn-primary mt-5">
-          Upload your first file
+          {d.uploadFirst}
         </Link>
       </div>
     );
@@ -83,11 +79,11 @@ export function AssetTable({
           <table className="w-full min-w-[42rem] border-collapse text-left">
             <thead className="bg-ink-850">
               <tr className="text-xs uppercase tracking-wider text-muted">
-                <th scope="col" className="px-5 py-3 font-semibold">File</th>
-                <th scope="col" className="px-5 py-3 font-semibold">Type</th>
-                <th scope="col" className="px-5 py-3 font-semibold">Size</th>
-                <th scope="col" className="px-5 py-3 font-semibold">Uploaded</th>
-                <th scope="col" className="px-5 py-3 text-right font-semibold">Actions</th>
+                <th scope="col" className="px-5 py-3 font-semibold">{d.file}</th>
+                <th scope="col" className="px-5 py-3 font-semibold">{d.type}</th>
+                <th scope="col" className="px-5 py-3 font-semibold">{d.size}</th>
+                <th scope="col" className="px-5 py-3 font-semibold">{d.uploaded}</th>
+                <th scope="col" className="px-5 py-3 text-right font-semibold">{d.actions}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-ink-700 bg-ink-900">
@@ -97,13 +93,13 @@ export function AssetTable({
                     {asset.filename}
                   </td>
                   <td className="px-5 py-3.5 text-sm text-muted">
-                    {KIND_LABEL[fileKind(asset.mime_type)]}
+                    {d.kinds[fileKind(asset.mime_type)]}
                   </td>
                   <td className="whitespace-nowrap px-5 py-3.5 text-sm text-muted">
                     {formatBytes(Number(asset.file_size_bytes))}
                   </td>
                   <td className="whitespace-nowrap px-5 py-3.5 text-sm text-muted">
-                    {formatDate(asset.created_at)}
+                    {formatDate(asset.created_at, locale)}
                   </td>
                   <td className="whitespace-nowrap px-5 py-3.5 text-right">
                     <div className="flex items-center justify-end gap-2">
@@ -111,7 +107,7 @@ export function AssetTable({
                         href={`/api/assets/${asset.id}/download`}
                         className="btn-secondary px-3.5 py-1.5 text-xs"
                       >
-                        Download
+                        {d.download}
                       </a>
                       <button
                         type="button"
@@ -119,7 +115,7 @@ export function AssetTable({
                         disabled={pending || deletingId === asset.id}
                         className="btn-danger px-3.5 py-1.5 text-xs"
                       >
-                        {deletingId === asset.id ? "Deleting…" : "Delete"}
+                        {deletingId === asset.id ? d.deleting : d.delete}
                       </button>
                     </div>
                   </td>

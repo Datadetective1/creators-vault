@@ -2,11 +2,8 @@ import Image from "next/image";
 
 import { MediaTile } from "@/components/media-tile";
 import { Reveal } from "@/components/reveal";
-import { getDictionary } from "@/lib/i18n";
+import { getI18n } from "@/lib/i18n/server";
 import { CONTENT_WALL } from "@/lib/media";
-
-/** Base-language copy. One lookup point, so a locale is a file, not a hunt. */
-const en = getDictionary();
 
 /**
  * Upload. Secure. Retrieve.
@@ -18,8 +15,9 @@ const en = getDictionary();
  * words the hero uses — so the flow a visitor meets at the top is the flow
  * they meet here.
  */
-export function HowItWorks() {
-  const { eyebrow, heading, intro, items } = en.steps;
+export async function HowItWorks() {
+  const { eyebrow, heading, intro, items, securedBadge, downloadBadge } = (await getI18n()).t
+    .landing.steps;
 
   return (
     <section id="how-it-works" className="scroll-mt-24 border-t border-ink-800/80 py-20 sm:py-28">
@@ -37,8 +35,8 @@ export function HowItWorks() {
             <Reveal key={item.number} delay={index * 90}>
               <Step number={item.number} label={item.label} body={item.body}>
                 {index === 0 && <GalleryVisual />}
-                {index === 1 && <SecureVisual />}
-                {index === 2 && <RetrieveVisual />}
+                {index === 1 && <SecureVisual badge={securedBadge} />}
+                {index === 2 && <RetrieveVisual badge={downloadBadge} />}
               </Step>
             </Reveal>
           ))}
@@ -105,7 +103,7 @@ function GalleryVisual() {
 }
 
 /** 02 Secure — the file moving into the lock. */
-function SecureVisual() {
+function SecureVisual({ badge }: { badge: string }) {
   return (
     <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-6">
       <div className="flex w-full max-w-[13rem] items-center gap-3">
@@ -153,14 +151,14 @@ function SecureVisual() {
       </div>
       <span className="badge text-mint-400">
         <span className="inline-block h-1.5 w-1.5 rounded-full bg-current" aria-hidden="true" />
-        Secured
+        {badge}
       </span>
     </div>
   );
 }
 
 /** 03 Retrieve — the archive, back in the creator's hands. */
-function RetrieveVisual() {
+function RetrieveVisual({ badge }: { badge: string }) {
   const picks = CONTENT_WALL.slice(0, 6);
   return (
     <div className="absolute inset-0 p-4">
@@ -188,7 +186,7 @@ function RetrieveVisual() {
             strokeLinejoin="round"
           />
         </svg>
-        Download
+        {badge}
       </span>
     </div>
   );

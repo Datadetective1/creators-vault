@@ -4,10 +4,16 @@ import Link from "next/link";
 import { StorageMeter } from "@/components/storage-meter";
 import { AssetTable } from "@/components/asset-table";
 import { formatBytes } from "@/lib/format";
+import { fmt } from "@/lib/i18n";
+import { getI18n } from "@/lib/i18n/server";
 import { createClient, getCurrentUser } from "@/lib/supabase/server";
 import { getVaultSummary, listAssets } from "@/lib/vault";
 
-export const metadata: Metadata = { title: "Dashboard" };
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getI18n();
+  return { title: t.common.dashboardNav.dashboard };
+}
+
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
@@ -15,10 +21,13 @@ export default async function DashboardPage() {
   if (!user) return null; // layout redirects; this satisfies the type narrowing
 
   const supabase = await createClient();
-  const [summary, recent] = await Promise.all([
+  const [summary, recent, { t }] = await Promise.all([
     getVaultSummary(supabase, user),
     listAssets(supabase, user, 5),
+    getI18n(),
   ]);
+  const d = t.dashboard;
+  const plan = t.pricing.plans[summary.plan.tier];
 
   const firstName =
     (user.user_metadata?.["display_name"] as string | undefined)?.split(" ")[0] ?? null;
@@ -28,28 +37,26 @@ export default async function DashboardPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-cream-50 sm:text-3xl">
-            {firstName ? `Welcome back, ${firstName}` : "Welcome back"}
+            {firstName ? fmt(d.overview.welcomeNamed, { name: firstName }) : d.overview.welcome}
           </h1>
-          <p className="mt-1 text-sm text-muted">
-            Here is what is currently protected in your vault.
-          </p>
+          <p className="mt-1 text-sm text-muted">{d.overview.intro}</p>
         </div>
         <Link href="/dashboard/upload" className="btn-primary shrink-0">
-          Upload files
+          {d.uploadFiles}
         </Link>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard label="Current plan" value={summary.plan.name} sub={summary.plan.storageLabel} />
+        <StatCard label={d.currentPlan} value={plan.name} sub={plan.storageLabel} />
         <StatCard
-          label="Files protected"
+          label={d.overview.filesProtected}
           value={String(summary.fileCount)}
-          sub={summary.fileCount === 1 ? "file" : "files"}
+          sub={summary.fileCount === 1 ? d.fileOne : d.fileMany}
         />
         <StatCard
-          label="Storage used"
+          label={d.overview.storageUsed}
           value={formatBytes(summary.usedBytes)}
-          sub={`of ${summary.plan.storageLabel}`}
+          sub={fmt(d.overview.ofTotal, { total: plan.storageLabel })}
         />
       </div>
 
@@ -61,9 +68,9 @@ export default async function DashboardPage() {
         />
         {summary.plan.tier === "free" && (
           <p className="mt-4 text-sm text-muted">
-            Need more room?{" "}
+            {d.overview.needMoreRoom}{" "}
             <Link href="/dashboard/billing" className="font-medium text-gold-400 hover:text-gold-300">
-              See plans
+              {d.overview.seePlans}
             </Link>
           </p>
         )}
@@ -71,10 +78,10 @@ export default async function DashboardPage() {
 
       <section>
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-cream-50">Recent files</h2>
+          <h2 className="text-lg font-semibold text-cream-50">{d.overview.recentFiles}</h2>
           {summary.fileCount > 0 && (
-            <Link href="/dashboard/vault" className="text-sm text-gold-400 hover:text-gold-300">
-              View all
+            <Link href="/dashboard/files" className="text-sm text-gold-400 hover:text-gold-300">
+              {d.overview.viewAll}
             </Link>
           )}
         </div>

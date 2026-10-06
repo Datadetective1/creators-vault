@@ -9,6 +9,14 @@ const nextConfig: NextConfig = {
     formats: ["image/avif", "image/webp"],
   },
   poweredByHeader: false,
+  async redirects() {
+    // The library page was renamed from "vault" to "files"; keep old links,
+    // bookmarks and login `next=` targets working.
+    return [
+      { source: "/dashboard/vault", destination: "/dashboard/files", permanent: true },
+      { source: "/dashboard/vault/:path*", destination: "/dashboard/files/:path*", permanent: true },
+    ];
+  },
   async headers() {
     return [
       {

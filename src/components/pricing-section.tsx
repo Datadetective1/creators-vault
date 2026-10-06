@@ -1,8 +1,49 @@
 import Link from "next/link";
 
 import { Reveal } from "@/components/reveal";
+import { rich } from "@/components/rich-text";
 import { isPaddleConfigured } from "@/lib/env";
+import { fmt, type Locale, type Messages } from "@/lib/i18n";
+import { getI18n } from "@/lib/i18n/server";
+import { getLocalCreatorPrice, visitorCountry } from "@/lib/paddle-pricing";
 import { PLANS } from "@/lib/plans";
+
+/**
+ * The Creator price as displayed: the figure, its period and the tax note.
+ *
+ * The one place the price label is put together — the cards below, the
+ * /pricing billing notes and its metadata all read it from here.
+ *
+ * Where the visitor's country is known, the figure is Paddle's own pricing
+ * preview for that country (src/lib/paddle-pricing.ts), so the page shows what
+ * checkout will charge, in the currency it will charge in. Otherwise it is the
+ * catalog price from `src/lib/plans.ts` with the general tax note.
+ */
+export async function creatorPrice(t: Messages, locale: Locale) {
+  const country = await visitorCountry();
+  const local = await getLocalCreatorPrice(country);
+  const generic = {
+    priceLabel: PLANS.creator.priceLabel,
+    pricePeriod: t.pricing.plans.creator.pricePeriod,
+    taxNote: t.pricing.plans.creator.taxNote,
+  };
+  if (!local) return generic;
+
+  let countryName = local.country;
+  try {
+    countryName = new Intl.DisplayNames([locale], { type: "region" }).of(local.country) ?? local.country;
+  } catch {
+    // Keep the ISO code.
+  }
+
+  return {
+    priceLabel: local.total,
+    pricePeriod: t.pricing.plans.creator.pricePeriod,
+    taxNote: local.taxIncluded
+      ? fmt(t.pricing.plans.creator.localTaxIncluded, { tax: local.taxIncluded, country: countryName })
+      : generic.taxNote,
+  };
+}
 
 /**
  * The Free and Creator plans. Rendered on the homepage (#pricing) and as the
@@ -10,17 +51,22 @@ import { PLANS } from "@/lib/plans";
  *
  * Both tiers are read from `src/lib/plans.ts` — the same definitions the
  * dashboard's plan picker and the server-side quota use — so the price and
- * allowance shown here cannot drift from what people actually get.
+ * allowance shown here cannot drift from what people actually get. The words
+ * around them come from `t.pricing.plans`, keyed by plan id.
  *
  * Whether anything is charged is read off `isPaddleConfigured()` rather than
  * asserted: with no Paddle configuration the copy says nothing is charged yet,
  * and it changes by itself the moment billing is switched on. Both cards link
  * to sign-up, never straight to a checkout.
  */
-export function PricingSection({ standalone = false }: { standalone?: boolean }) {
-  const { free, creator } = PLANS;
+export async function PricingSection({ standalone = false }: { standalone?: boolean }) {
+  const { locale, t } = await getI18n();
+  const copy = t.pricing;
+  const { free, creator } = copy.plans;
+  const { priceLabel, pricePeriod, taxNote } = await creatorPrice(t, locale);
   const billingLive = isPaddleConfigured();
   const Heading = standalone ? "h1" : "h2";
+  const linkClass = "text-cream-300 underline underline-offset-2 hover:text-cream-50";
 
   return (
     <section
@@ -34,12 +80,10 @@ export function PricingSection({ standalone = false }: { standalone?: boolean })
       <div className="container-page">
         <Reveal>
           <div className="mx-auto max-w-2xl text-center">
-            <p className="eyebrow justify-center">Pricing</p>
-            <Heading className="section-heading mt-3">Start free. One simple paid plan.</Heading>
+            <p className="eyebrow justify-center">{copy.eyebrow}</p>
+            <Heading className="section-heading mt-3">{copy.heading}</Heading>
             <p className="prose-muted mt-4">
-              {billingLive
-                ? "Pilot pricing. Change plan at any time."
-                : "Pilot pricing, while we finish building. Nothing is charged yet."}
+              {billingLive ? copy.subheadingLive : copy.subheadingNotLive}
             </p>
           </div>
         </Reveal>
@@ -53,7 +97,7 @@ export function PricingSection({ standalone = false }: { standalone?: boolean })
               <p className="mt-6 text-4xl font-semibold tracking-tight text-cream-50">
                 {free.storageLabel}
               </p>
-              <p className="text-sm text-muted">of private storage</p>
+              <p className="text-sm text-muted">{free.storageCaption}</p>
 
               <ul className="mt-6 space-y-2.5">
                 {free.features.map((feature) => (
@@ -65,7 +109,7 @@ export function PricingSection({ standalone = false }: { standalone?: boolean })
               </ul>
 
               <Link href="/signup" className="btn-secondary mt-7 w-full">
-                Start free
+                {free.cta}
               </Link>
             </div>
           </Reveal>
@@ -86,13 +130,12 @@ export function PricingSection({ standalone = false }: { standalone?: boolean })
                     a gold "$" beside a magenta "4". plan-picker.tsx renders the
                     same priceLabel in gold-400. */}
                 <span className="text-4xl font-semibold tracking-tight text-gold-400">
-                  {creator.priceLabel}
+                  <span data-testid="creator-price">{priceLabel}</span>
                 </span>
-                <span className="text-sm text-muted">{creator.pricePeriod}</span>
+                <span className="text-sm text-muted">{pricePeriod}</span>
               </p>
-              <p className="relative text-sm text-muted">
-                {creator.storageLabel} — flat, however much you store
-              </p>
+              <p className="relative mt-1 text-xs leading-relaxed text-muted"><span data-testid="creator-tax-note">{taxNote}</span></p>
+              <p className="relative mt-2 text-sm text-muted">{creator.storageCaption}</p>
 
               <ul className="relative mt-6 space-y-2.5">
                 {creator.features.map((feature) => (
@@ -104,25 +147,25 @@ export function PricingSection({ standalone = false }: { standalone?: boolean })
               </ul>
 
               <Link href="/signup" className="btn-primary relative mt-7 w-full">
-                Join the pilot
+                {creator.cta}
               </Link>
             </div>
           </Reveal>
         </div>
 
         <p className="mx-auto mt-8 max-w-2xl text-center text-sm text-muted">
-          {billingLive
-            ? "Pilot pricing is not final. Paid plans are billed through Paddle, our payment provider, with the price confirmed at checkout."
-            : "Pilot pricing is not final and no card is charged today. Paid plans will be billed through Paddle, our payment provider, with the price confirmed at checkout."}{" "}
-          See our{" "}
-          <Link href="/terms" className="text-cream-300 underline underline-offset-2 hover:text-cream-50">
-            Terms
-          </Link>{" "}
-          and{" "}
-          <Link href="/refunds" className="text-cream-300 underline underline-offset-2 hover:text-cream-50">
-            Refund Policy
-          </Link>
-          .
+          {rich(billingLive ? copy.footnoteLive : copy.footnoteNotLive, {
+            terms: (
+              <Link href="/terms" className={linkClass}>
+                {t.common.legalLinks.termsShort}
+              </Link>
+            ),
+            refunds: (
+              <Link href="/refunds" className={linkClass}>
+                {t.common.legalLinks.refunds}
+              </Link>
+            ),
+          })}
         </p>
       </div>
     </section>

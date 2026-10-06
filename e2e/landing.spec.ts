@@ -21,7 +21,7 @@ test("landing page shows the full story", async ({ page }) => {
     "Why your business is at risk right now:",
     "The Solution",
     "Upload. Secure. Retrieve.",
-    "All of this can live in your vault.",
+    "All of this can live in your private library.",
     "Start free. One simple paid plan.",
     "Questions creators ask first.",
   ]) {
@@ -32,7 +32,7 @@ test("landing page shows the full story", async ({ page }) => {
   await expect(page.getByText("5 GB", { exact: true }).first()).toBeVisible();
   await expect(page.getByRole("heading", { name: "Creator", exact: true })).toBeVisible();
   await expect(page.getByText("$4", { exact: true }).first()).toBeVisible();
-  await expect(page.getByText("/month + applicable tax", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("/month", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("Up to 100 GB", { exact: false }).first()).toBeVisible();
 });
 
@@ -42,7 +42,7 @@ test("/pricing is a real pricing page, linked from the nav and footer", async ({
   await expect(page).toHaveURL(/\/pricing$/);
   await expect(page.getByRole("heading", { level: 1, name: "Start free. One simple paid plan." })).toBeVisible();
   await expect(page.getByText("$4", { exact: true }).first()).toBeVisible();
-  await expect(page.getByText("/month + applicable tax", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("/month", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("Up to 100 GB", { exact: false }).first()).toBeVisible();
   await expect(page.getByRole("heading", { name: "How billing works" })).toBeVisible();
   await expect(page.locator("main a[href='/refunds']").first()).toBeVisible();
@@ -281,7 +281,7 @@ test("primary calls to action reach sign-up", async ({ page }) => {
 
   await page.getByRole("link", { name: "Protect My Content" }).first().click();
   await expect(page).toHaveURL(/\/signup$/);
-  await expect(page.getByRole("heading", { name: "Create your vault" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Create your account" })).toBeVisible();
 });
 
 test("auth pages render and link to each other", async ({ page }) => {
@@ -302,12 +302,12 @@ test("FAQ entries expand", async ({ page }) => {
   const question = page.getByText("Can anyone else see my files?");
   await question.click();
   await expect(
-    page.getByText("Your vault is private.", { exact: false }),
+    page.getByText("Your files are private.", { exact: false }),
   ).toBeVisible();
 });
 
 test.describe("protected routes are closed while signed out", () => {
-  for (const path of ["/dashboard", "/dashboard/vault", "/dashboard/upload", "/dashboard/billing"]) {
+  for (const path of ["/dashboard", "/dashboard/files", "/dashboard/vault", "/dashboard/upload", "/dashboard/billing"]) {
     test(`${path} redirects to login`, async ({ page }) => {
       await page.goto(path);
       await expect(page).toHaveURL(/\/login/);
@@ -372,8 +372,8 @@ test.describe("?next= cannot redirect off-site after login", () => {
   }
 
   test("keeps a legitimate internal path, query string included", async ({ page }) => {
-    await page.goto("/login?next=/dashboard/vault%3Ftab%3Drecent");
-    await expect(page.locator('input[name="next"]')).toHaveValue("/dashboard/vault?tab=recent");
+    await page.goto("/login?next=/dashboard/files%3Ftab%3Drecent");
+    await expect(page.locator('input[name="next"]')).toHaveValue("/dashboard/files?tab=recent");
   });
 });
 

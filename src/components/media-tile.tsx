@@ -1,5 +1,6 @@
 import Image from "next/image";
 
+import { getI18n } from "@/lib/i18n/server";
 import type { MediaItem } from "@/lib/media";
 
 const KIND_TINT: Record<string, string> = {
@@ -15,10 +16,13 @@ const KIND_TINT: Record<string, string> = {
 /**
  * One piece of creator content.
  *
+ * The catalogue's alt text and kind labels are English; the active locale's
+ * `landing.media` supplies translations, falling back to the catalogue.
+ *
  * `priority` is reserved for the tiles above the fold; everything else loads
  * lazily so the content wall costs nothing until it is scrolled to.
  */
-export function MediaTile({
+export async function MediaTile({
   item,
   className = "",
   sizes = "(max-width: 640px) 60vw, (max-width: 1024px) 33vw, 25vw",
@@ -34,13 +38,15 @@ export function MediaTile({
   /** Override the catalogue alt; pass "" when the tile is purely decorative. */
   alt?: string;
 }) {
+  const { media } = (await getI18n()).t.landing;
+
   return (
     <figure className={`media-tile group ${className}`}>
       <Image
         src={item.src}
         // `??` not `||`, so an explicit "" is honoured rather than falling
         // back to the full description.
-        alt={alt ?? item.alt}
+        alt={alt ?? media.alts[item.src] ?? item.alt}
         width={item.width}
         height={item.height}
         sizes={sizes}
@@ -61,7 +67,7 @@ export function MediaTile({
               so the duration is never clipped. */}
           <span className={`badge min-w-0 ${KIND_TINT[item.kind] ?? "text-cream-200"}`}>
             <KindDot />
-            <span className="truncate">{item.kind}</span>
+            <span className="truncate">{media.kinds[item.kind]}</span>
           </span>
           {item.meta && <span className="badge shrink-0 text-cream-200">{item.meta}</span>}
         </figcaption>

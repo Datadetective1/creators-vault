@@ -83,9 +83,19 @@ export function sanitizeFilename(filename: string): string {
   return safe.slice(0, MAX_FILENAME_LENGTH);
 }
 
+export type FileCheckCode =
+  | "empty"
+  | "too_large"
+  | "unsupported_type"
+  | "no_extension"
+  | "extension_mismatch";
+
 export interface FileCheckResult {
   ok: boolean;
+  /** English, for the server's error responses. */
   error?: string;
+  /** Stable reason, so the browser can show `error` in the visitor's language. */
+  code?: FileCheckCode;
 }
 
 /** Shared by the browser form and the server route — one rule set, one place. */
@@ -94,21 +104,26 @@ export function checkFile(
   mimeType: string,
   sizeBytes: number,
 ): FileCheckResult {
-  if (sizeBytes <= 0) return { ok: false, error: "File appears to be empty." };
+  if (sizeBytes <= 0) return { ok: false, code: "empty", error: "File appears to be empty." };
   if (sizeBytes > MAX_FILE_SIZE_BYTES) {
-    return { ok: false, error: "File is larger than the 5 GB per-file limit." };
+    return { ok: false, code: "too_large", error: "File is larger than the 5 GB per-file limit." };
   }
 
   const allowedExtensions = ALLOWED_TYPES[mimeType];
   if (!allowedExtensions) {
-    return { ok: false, error: `Files of type "${mimeType || "unknown"}" are not supported.` };
+    return {
+      ok: false,
+      code: "unsupported_type",
+      error: `Files of type "${mimeType || "unknown"}" are not supported.`,
+    };
   }
 
   const extension = extensionOf(filename);
-  if (!extension) return { ok: false, error: "File must have an extension." };
+  if (!extension) return { ok: false, code: "no_extension", error: "File must have an extension." };
   if (!allowedExtensions.includes(extension)) {
     return {
       ok: false,
+      code: "extension_mismatch",
       error: `Extension ".${extension}" does not match the file type "${mimeType}".`,
     };
   }

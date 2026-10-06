@@ -1,10 +1,15 @@
 import Link from "next/link";
 
 import { Logo, PRODUCT_NAME } from "@/components/brand";
+import { LanguageSelect } from "@/components/language-select";
+import { fmt } from "@/lib/i18n";
+import { getI18n } from "@/lib/i18n/server";
 import { LEGAL } from "@/lib/legal";
 
-export function SiteFooter() {
+export async function SiteFooter() {
   const year = new Date().getFullYear();
+  const { t } = await getI18n();
+  const f = t.common.footer;
 
   return (
     <footer className="border-t border-ink-800 bg-ink-950">
@@ -13,47 +18,48 @@ export function SiteFooter() {
           <div className="max-w-xs">
             <Logo />
             <p className="mt-3 text-sm leading-relaxed text-muted">
-              An independent, private copy of the work behind your brand.
+              {f.tagline}
             </p>
+            <LanguageSelect className="mt-5" />
           </div>
 
           <div className="grid grid-cols-2 gap-x-12 gap-y-6 sm:grid-cols-4">
-            <FooterColumn title="Product">
-              <FooterLink href="/#how-it-works">How it works</FooterLink>
-              <FooterLink href="/#what-you-can-protect">What you can protect</FooterLink>
-              <FooterLink href="/pricing">Pricing</FooterLink>
+            <FooterColumn title={f.product}>
+              <FooterLink href="/#how-it-works">{f.howItWorks}</FooterLink>
+              <FooterLink href="/#what-you-can-protect">{f.whatYouCanProtect}</FooterLink>
+              <FooterLink href="/pricing">{f.pricing}</FooterLink>
             </FooterColumn>
 
-            <FooterColumn title="Account">
-              <FooterLink href="/signup">Create account</FooterLink>
-              <FooterLink href="/login">Login</FooterLink>
-              <FooterLink href="/#faq">FAQ</FooterLink>
+            <FooterColumn title={f.account}>
+              <FooterLink href="/signup">{f.createAccount}</FooterLink>
+              <FooterLink href="/login">{f.login}</FooterLink>
+              <FooterLink href="/#faq">{f.faq}</FooterLink>
             </FooterColumn>
 
-            <FooterColumn title="Support">
-              <FooterLink href="/#faq">Help</FooterLink>
+            <FooterColumn title={f.support}>
+              <FooterLink href="/#faq">{f.help}</FooterLink>
               {LEGAL.supportEmail && (
-                <FooterLink href={`mailto:${LEGAL.supportEmail}`}>Email support</FooterLink>
+                <FooterLink href={`mailto:${LEGAL.supportEmail}`}>{f.emailSupport}</FooterLink>
               )}
               {LEGAL.securityEmail && (
-                <FooterLink href={`mailto:${LEGAL.securityEmail}`}>Report a security issue</FooterLink>
+                <FooterLink href={`mailto:${LEGAL.securityEmail}`}>{f.reportSecurity}</FooterLink>
               )}
             </FooterColumn>
 
-            <FooterColumn title="Legal">
-              <FooterLink href="/terms">Terms of Service</FooterLink>
-              <FooterLink href="/privacy">Privacy Policy</FooterLink>
-              <FooterLink href="/refunds">Refund Policy</FooterLink>
+            <FooterColumn title={f.legal}>
+              <FooterLink href="/terms">{t.common.legalLinks.terms}</FooterLink>
+              <FooterLink href="/privacy">{t.common.legalLinks.privacy}</FooterLink>
+              <FooterLink href="/refunds">{t.common.legalLinks.refunds}</FooterLink>
             </FooterColumn>
           </div>
         </div>
 
         <div className="mt-10 flex flex-col gap-3 border-t border-ink-800 pt-6 text-xs text-muted sm:flex-row sm:items-center sm:justify-between">
           <p>
-            &copy; {year} {LEGAL.operatorName}. {PRODUCT_NAME} is operated by {LEGAL.operatorName}.
-            Early access pilot.
+            &copy; {year} {LEGAL.operatorName}.{" "}
+            {fmt(f.operatedBy, { product: PRODUCT_NAME, operator: LEGAL.operatorName ?? "" })}
           </p>
-          <p>Your files stay private. We never publish or share what you upload.</p>
+          <p>{f.privacyNote}</p>
         </div>
       </div>
     </footer>

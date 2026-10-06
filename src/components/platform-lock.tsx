@@ -1,7 +1,8 @@
 "use client";
 
-import { LockMark, PRODUCT_NAME } from "@/components/brand";
+import { LockMark } from "@/components/brand";
 import { PLATFORMS } from "@/components/platform-icons";
+import { useI18n } from "@/lib/i18n/client";
 import { usePrefersReducedMotion } from "@/lib/use-reduced-motion";
 
 /**
@@ -38,6 +39,7 @@ const CYCLE_MS = 6000;
 
 export function PlatformLock({ className = "" }: { className?: string }) {
   const reduced = usePrefersReducedMotion();
+  const { t } = useI18n();
 
   return (
     <div
@@ -119,11 +121,7 @@ export function PlatformLock({ className = "" }: { className?: string }) {
         are and states the denial here rather than leaving it to the FAQ three
         sections below.
       */}
-      <p className="sr-only">
-        Work a creator publishes on Instagram, Snapchat, Telegram, YouTube and TikTok,
-        kept as their own copy in a lock they control. Files are uploaded by the
-        creator; {PRODUCT_NAME} does not connect to these platforms.
-      </p>
+      <p className="sr-only">{t.landing.platformLock.summary}</p>
     </div>
   );
 }

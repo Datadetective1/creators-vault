@@ -3,8 +3,11 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
+import { apiErrorMessage } from "@/lib/api-errors";
 import { formatBytes } from "@/lib/format";
-import { ACCEPT_ATTRIBUTE, checkFile } from "@/lib/validation";
+import { fmt } from "@/lib/i18n";
+import { useI18n } from "@/lib/i18n/client";
+import { ACCEPT_ATTRIBUTE, checkFile, extensionOf } from "@/lib/validation";
 
 type ItemStatus = "queued" | "uploading" | "done" | "error";
 
@@ -16,13 +19,18 @@ interface QueueItem {
   error?: string;
 }
 
+/** An upload failure whose message is already in the visitor's language. */
+class UploadError extends Error {}
+
 /**
  * Uploads go browser -> storage provider directly, using a short-lived signed
  * target minted by /api/assets/upload-url. Bytes never pass through a route
  * handler, so the 4.5 MB serverless request-body limit does not apply and
  * multi-gigabyte video works.
  */
-export function UploadPanel() {
+export function UploadPanel({ onConsentRequired }: { onConsentRequired?: () => void } = {}) {
+  const { t } = useI18n();
+  const u = t.dashboard.uploader;
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const [items, setItems] = useState<QueueItem[]>([]);
@@ -61,9 +69,9 @@ export function UploadPanel() {
       xhr.onload = () =>
         xhr.status >= 200 && xhr.status < 300
           ? resolve()
-          : reject(new Error(`Upload failed (${xhr.status}).`));
-      xhr.onerror = () => reject(new Error("Network error during upload."));
-      xhr.onabort = () => reject(new Error("Upload cancelled."));
+          : reject(new UploadError(fmt(u.uploadFailedStatus, { status: xhr.status })));
+      xhr.onerror = () => reject(new UploadError(u.networkError));
+      xhr.onabort = () => reject(new UploadError(u.cancelled));
 
       xhr.send(file);
     });
@@ -75,7 +83,13 @@ export function UploadPanel() {
     // Same rules the server enforces — this is only to fail fast.
     const check = checkFile(file.name, file.type, file.size);
     if (!check.ok) {
-      update(id, { status: "error", error: check.error });
+      const message = check.code
+        ? fmt(u.fileErrors[check.code], {
+            type: file.type || u.unknownType,
+            extension: extensionOf(file.name),
+          })
+        : u.uploadFailed;
+      update(id, { status: "error", error: message });
       return;
     }
 
@@ -97,10 +111,17 @@ export function UploadPanel() {
         method?: string;
         storageKey?: string;
         error?: string;
+        code?: string;
       };
 
+      if (target.code === "consent_required") {
+        update(id, { status: "queued", progress: 0 });
+        onConsentRequired?.();
+        return;
+      }
+
       if (!targetResponse.ok || !target.uploadUrl || !target.storageKey) {
-        throw new Error(target.error ?? "Could not start that upload.");
+        throw new UploadError(apiErrorMessage(t, target.code, u.startFailed));
       }
 
       await putWithProgress(target.uploadUrl, target.method ?? "PUT", file, id);
@@ -116,15 +137,23 @@ export function UploadPanel() {
       });
 
       if (!finalizeResponse.ok) {
-        const body = (await finalizeResponse.json().catch(() => ({}))) as { error?: string };
-        throw new Error(body.error ?? "Could not save that file.");
+        const body = (await finalizeResponse.json().catch(() => ({}))) as {
+          error?: string;
+          code?: string;
+        };
+        if (body.code === "consent_required") {
+          update(id, { status: "queued", progress: 0 });
+          onConsentRequired?.();
+          return;
+        }
+        throw new UploadError(apiErrorMessage(t, body.code, u.saveFailed));
       }
 
       update(id, { status: "done", progress: 100 });
     } catch (cause) {
       update(id, {
         status: "error",
-        error: cause instanceof Error ? cause.message : "Upload failed.",
+        error: cause instanceof UploadError ? cause.message : u.uploadFailed,
       });
     }
   }
@@ -166,17 +195,15 @@ export function UploadPanel() {
             : "rounded-2xl border-2 border-dashed border-ink-600 bg-ink-850/50 px-6 py-12 text-center transition-colors"
         }
       >
-        <p className="text-base font-medium text-cream-50">Drag files here</p>
-        <p className="mt-1.5 text-sm text-muted">
-          Videos, photos, audio and documents. Up to 5&nbsp;GB per file.
-        </p>
+        <p className="text-base font-medium text-cream-50">{u.dropTitle}</p>
+        <p className="mt-1.5 text-sm text-muted">{u.dropHint}</p>
 
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
           className="btn-secondary mt-5"
         >
-          Choose files
+          {u.choose}
         </button>
 
         <input
@@ -234,8 +261,8 @@ export function UploadPanel() {
               className="btn-primary"
             >
               {busy
-                ? "Uploading…"
-                : `Upload ${pendingCount} ${pendingCount === 1 ? "file" : "files"}`}
+                ? u.uploading
+                : fmt(pendingCount === 1 ? u.uploadOne : u.uploadMany, { count: pendingCount })}
             </button>
 
             <button
@@ -244,12 +271,12 @@ export function UploadPanel() {
               disabled={busy}
               className="btn-ghost"
             >
-              Clear list
+              {u.clear}
             </button>
 
             {doneCount > 0 && (
               <span className="text-sm text-mint-400">
-                {doneCount} uploaded to your vault
+                {fmt(u.doneCount, { count: doneCount })}
               </span>
             )}
           </div>
@@ -260,6 +287,8 @@ export function UploadPanel() {
 }
 
 function StatusBadge({ status, progress }: { status: ItemStatus; progress: number }) {
+  const { t } = useI18n();
+  const u = t.dashboard.uploader;
   const styles: Record<ItemStatus, string> = {
     queued: "text-muted",
     uploading: "text-gold-400",
@@ -267,10 +296,10 @@ function StatusBadge({ status, progress }: { status: ItemStatus; progress: numbe
     error: "text-rose-400",
   };
   const label: Record<ItemStatus, string> = {
-    queued: "Ready",
+    queued: u.ready,
     uploading: `${progress}%`,
-    done: "Done",
-    error: "Failed",
+    done: u.done,
+    error: u.failed,
   };
   return (
     <span className={`shrink-0 text-xs font-medium ${styles[status]}`}>{label[status]}</span>

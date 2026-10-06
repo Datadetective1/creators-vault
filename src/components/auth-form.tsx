@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 
 import type { AuthFormState } from "@/app/actions/auth";
+import { useI18n } from "@/lib/i18n/client";
 
 type Action = (state: AuthFormState, formData: FormData) => Promise<AuthFormState>;
 
@@ -47,9 +48,10 @@ export function AuthForm({
 
 function SubmitButton({ label }: { label: string }) {
   const { pending } = useFormStatus();
+  const { t } = useI18n();
   return (
     <button type="submit" className="btn-primary w-full py-3" disabled={pending}>
-      {pending ? "Working…" : label}
+      {pending ? t.auth.working : label}
     </button>
   );
 }

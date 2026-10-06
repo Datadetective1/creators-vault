@@ -7,8 +7,10 @@ import { isSupabaseConfigured } from "@/lib/env";
 import { createClient } from "@/lib/supabase/server";
 import {
   AssetNotFoundError,
+  ConsentRequiredError,
   NotAuthenticatedError,
   QuotaExceededError,
+  StaleConsentError,
   ValidationError,
 } from "@/lib/vault";
 
@@ -36,22 +38,32 @@ export async function requireUser(): Promise<{ supabase: SupabaseClient; user: U
  *
  * Known error types get their message through; anything else is logged
  * server-side and reported generically, so an internal detail never reaches
- * the client.
+ * the client. Every body carries a stable `code` as well, which the client
+ * uses to show the message in the visitor's language.
  */
 export function errorResponse(error: unknown): NextResponse {
   if (error instanceof NotAuthenticatedError) {
-    return NextResponse.json({ error: "You must be signed in." }, { status: 401 });
+    return NextResponse.json({ error: "You must be signed in.", code: "unauthenticated" }, { status: 401 });
+  }
+  if (error instanceof ConsentRequiredError) {
+    return NextResponse.json({ error: error.message, code: "consent_required" }, { status: 403 });
+  }
+  if (error instanceof StaleConsentError) {
+    return NextResponse.json({ error: error.message, code: "consent_stale" }, { status: 409 });
   }
   if (error instanceof AssetNotFoundError) {
-    return NextResponse.json({ error: error.message }, { status: 404 });
+    return NextResponse.json({ error: error.message, code: "not_found" }, { status: 404 });
   }
   if (error instanceof QuotaExceededError) {
-    return NextResponse.json({ error: error.message }, { status: 413 });
+    return NextResponse.json({ error: error.message, code: "quota_exceeded" }, { status: 413 });
   }
   if (error instanceof ValidationError) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+    return NextResponse.json({ error: error.message, code: "invalid" }, { status: 400 });
   }
 
   console.error("[api] unhandled error", error);
-  return NextResponse.json({ error: "Something went wrong. Please try again." }, { status: 500 });
+  return NextResponse.json(
+    { error: "Something went wrong. Please try again.", code: "server_error" },
+    { status: 500 },
+  );
 }

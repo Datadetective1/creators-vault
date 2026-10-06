@@ -54,6 +54,11 @@ export default function TermsPage() {
           {name} is in early access. We are still improving it, and features may change. We will
           tell you in advance about changes that materially reduce what you are paying for.
         </p>
+        <p>
+          You may use {name} to keep private copies of your own creative and business work, and
+          to download and delete them. It is a personal storage service, not a way to publish,
+          distribute or stream files to other people.
+        </p>
       </Section>
 
       <Section id="eligibility" title="3. Your account">
@@ -69,6 +74,13 @@ export default function TermsPage() {
             straight away if you think someone else has access to it.
           </li>
           <li>One person per account. Do not share or resell access.</li>
+          <li>
+            Before your first upload, we ask you to accept these terms and our Privacy Policy, and
+            to confirm that you own, or have the rights to store, what you upload. We keep a record
+            of that acceptance, with the version of each document and the time. If we make a
+            material change to either document, we will ask you to accept the new version before
+            you upload again.
+          </li>
         </List>
       </Section>
 
@@ -80,10 +92,15 @@ export default function TermsPage() {
           </li>
           <li>
             <strong className="text-cream-50">Creator</strong> includes up to{" "}
-            {LEGAL.creatorStorage} of storage for {LEGAL.creatorPrice}, plus any tax that applies
-            where you live. Tax is calculated and shown at checkout before you pay.
+            {LEGAL.creatorStorage} of storage for {LEGAL.creatorPrice}. Any tax that applies where
+            you live is calculated and shown at checkout before you pay.
           </li>
           <li>Individual files can be up to {LEGAL.maxFileSize}.</li>
+          <li>
+            Prices are charged in US dollars. In some countries, including India and Bangladesh,
+            the price you see at checkout already includes local tax; elsewhere tax is added at
+            checkout. Your bank or card provider may add its own currency-conversion fees.
+          </li>
         </List>
         <p>
           Our order process is conducted by our online reseller Paddle.com. Paddle is the Merchant
@@ -117,7 +134,7 @@ export default function TermsPage() {
         </p>
         <p>
           Moving to Free never deletes your files. If you are storing more than{" "}
-          {LEGAL.freeStorage} when that happens, everything stays in your vault and you can still
+          {LEGAL.freeStorage} when that happens, everything stays in your account and you can still
           view, download and delete it — you just cannot upload more until you are back under the
           Free limit or upgrade again.
         </p>
@@ -132,14 +149,18 @@ export default function TermsPage() {
           work.
         </p>
         <p>
-          You give us only the permission we need to run {name} for you: to store your files,
-          keep them secure, and send them back to you when you ask. That permission ends when you
+          You give us only a limited, non-exclusive, royalty-free permission to do what is needed
+          to run {name} for you: to store your files, make the technical copies storage requires
+          (such as backups), keep them secure, and send them back to you when you ask. We do not
+          use your files for anything else — not for advertising, and not to train AI models. That permission ends when you
           delete the file or your account, except for copies that briefly remain in backups as
           described in our <Link href="/privacy" className="text-gold-400 underline-offset-4 hover:underline">Privacy Policy</Link>.
         </p>
         <p>
-          Only upload files you own or have the right to store. You are responsible for the
-          content of your vault.
+          Only upload files you own or have the necessary rights and permission to store. That
+          includes making sure you are allowed to keep copies of anything featuring other people,
+          or work made with or licensed from others. You are responsible for what you upload, and
+          we do not review it in advance.
         </p>
       </Section>
 
@@ -157,16 +178,33 @@ export default function TermsPage() {
         </List>
         <p>
           If you break these rules we may remove the content concerned and suspend or close your
-          account. Where it is safe and lawful to do so, we will tell you why and give you a chance
-          to respond first.
+          account. We may also suspend an account straight away where we need to protect the
+          service or other people, or where the law requires it. Where it is safe and lawful to do
+          so, we will tell you why and give you a chance to respond first.
         </p>
         <p>
-          If you believe material in {name} infringes your rights, write to{" "}
-          <Detail field="legalEmail" /> with the details and we will look into it promptly.
+          To report abuse of {name}, email <Detail field="legalEmail" />. To report a security
+          problem, email <Detail field="securityEmail" />.
         </p>
       </Section>
 
-      <Section id="availability" title="8. Keeping your files safe">
+      <Section id="ip-complaints" title="8. Copyright and other rights complaints">
+        <p>
+          If you believe material stored in {name} infringes your copyright or other rights, write
+          to <Detail field="legalEmail" /> with: your name and contact details; the work you
+          believe is infringed; enough information for us to identify the material and the account
+          (for example, where you saw it shared); a statement that you believe in good faith the
+          use is not authorised; and a statement that your notice is accurate and that you are the
+          rights holder or authorised to act for them.
+        </p>
+        <p>
+          Files in {name} are private, so we will act on a complaint that identifies the material
+          clearly. We may remove or restrict access to it and will tell the account holder, who can
+          reply with their side. We close the accounts of people who repeatedly infringe.
+        </p>
+      </Section>
+
+      <Section id="availability" title="9. Keeping your files safe">
         <p>
           We work hard to keep {name} available and your files safe, but no online service can
           promise to be uninterrupted or error-free. {name} should be one of the places your work
@@ -178,7 +216,7 @@ export default function TermsPage() {
         </p>
       </Section>
 
-      <Section id="ending" title="9. Closing your account">
+      <Section id="ending" title="10. Closing your account">
         <p>
           You can stop using {name} at any time. To close your account and delete everything in
           it, email <Detail field="supportEmail" /> from the address you signed up with.
@@ -188,9 +226,19 @@ export default function TermsPage() {
           will give you at least <Proposed term="closureNoticeDays" /> notice so you can download
           your files, and refund any unused prepaid period where applicable.
         </p>
+        <p>
+          When an account is closed, we delete its files and account data within{" "}
+          <Proposed term="accountDeletionDays" />, except for records we must keep by law (such as
+          billing records held by Paddle) and copies in backups that expire shortly afterwards, as
+          described in our{" "}
+          <Link href="/privacy" className="text-gold-400 underline-offset-4 hover:underline">
+            Privacy Policy
+          </Link>
+          . Deleted files cannot be recovered, so download anything you want to keep first.
+        </p>
       </Section>
 
-      <Section id="liability" title="10. Our responsibility to you">
+      <Section id="liability" title="11. Our responsibility to you">
         <p>
           We provide {name} with reasonable care and skill. Apart from that, and to the extent the
           law allows, it is provided &ldquo;as is&rdquo; without other promises about fitness for
@@ -207,15 +255,16 @@ export default function TermsPage() {
         </p>
       </Section>
 
-      <Section id="changes" title="11. Changes to these terms">
+      <Section id="changes" title="12. Changes to these terms">
         <p>
           We may update these terms as {name} develops. If a change matters, we will email you
-          before it takes effect. If you do not agree to it, you can cancel and close your account.
-          The date at the top shows when these terms last changed.
+          before it takes effect and ask you to accept the new version before your next upload. If
+          you do not agree to it, you can cancel, download your files and close your account. The
+          date at the top shows when these terms last changed.
         </p>
       </Section>
 
-      <Section id="law" title="12. Law and disputes">
+      <Section id="law" title="13. Law and disputes">
         <p>
           These terms are governed by <Detail field="governingLaw" />. If you have a problem,
           please contact us first at <Detail field="supportEmail" /> — most things can be sorted

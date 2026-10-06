@@ -1,25 +1,28 @@
 import type { Metadata, Viewport } from "next";
 
 import { PRODUCT_NAME } from "@/lib/brand";
+import { I18nProvider } from "@/lib/i18n/client";
+import { getI18n } from "@/lib/i18n/server";
 
 import "./globals.css";
 
-export const metadata: Metadata = {
-  // The name is a WORKING name, not final branding — see src/lib/brand.ts.
-  title: {
-    default: `${PRODUCT_NAME} — Secure your content from platform censorship`,
-    template: `%s · ${PRODUCT_NAME}`,
-  },
-  description:
-    "Upload, secure and retrieve your own copy of the videos, photos and files your business is built on. Secure your content from platform censorship and shifting regulations.",
-  openGraph: {
-    title: `${PRODUCT_NAME} — Secure your content from platform censorship`,
-    description:
-      "Upload. Secure. Retrieve anytime. Keep a private, independent copy of the content your business depends on.",
-    type: "website",
-  },
-  robots: { index: true, follow: true },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getI18n();
+  return {
+    // The name is a WORKING name, not final branding — see src/lib/brand.ts.
+    title: {
+      default: `${PRODUCT_NAME} — ${t.common.meta.title}`,
+      template: `%s · ${PRODUCT_NAME}`,
+    },
+    description: t.common.meta.description,
+    openGraph: {
+      title: `${PRODUCT_NAME} — ${t.common.meta.title}`,
+      description: t.common.meta.ogDescription,
+      type: "website",
+    },
+    robots: { index: true, follow: true },
+  };
+}
 
 export const viewport: Viewport = {
   themeColor: "#0a0810",
@@ -27,9 +30,11 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const { locale, t } = await getI18n();
+
   return (
-    <html lang="en">
+    <html lang={locale}>
       <head>
         {/*
           Marks the document as scripting-capable before first paint, which is
@@ -53,9 +58,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           href="#main"
           className="sr-only rounded-full bg-gold-400 px-4 py-2 font-semibold text-ink-950 focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50"
         >
-          Skip to content
+          {t.common.skipToContent}
         </a>
-        {children}
+        <I18nProvider locale={locale}>{children}</I18nProvider>
       </body>
     </html>
   );

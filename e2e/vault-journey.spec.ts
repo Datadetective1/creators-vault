@@ -31,7 +31,7 @@ import {
 const READY = process.env.E2E_SUPABASE_READY === "1";
 
 const NEUTRAL_SIGNUP_NOTICE =
-  "Check your email for a confirmation link to finish setting up your vault.";
+  "Check your email for a confirmation link to finish setting up your account.";
 
 async function logInThroughUi(page: Page, user: TestUser) {
   await page.goto("/login");
@@ -43,6 +43,13 @@ async function logInThroughUi(page: Page, user: TestUser) {
 
 async function uploadThroughUi(page: Page, filename: string, contents: string) {
   await page.goto("/dashboard/upload");
+  // First upload: accept the Terms/Privacy/upload-rights gate (e2e/consent.spec.ts covers it).
+  if (await page.getByTestId("consent-gate").isVisible()) {
+    await page.getByTestId("consent-terms").check();
+    await page.getByTestId("consent-rights").check();
+    await page.getByTestId("consent-accept").click();
+    await expect(page.locator('input[type="file"]')).toHaveCount(1, { timeout: 20_000 });
+  }
   await page.setInputFiles('input[type="file"]', {
     name: filename,
     mimeType: "text/plain",
@@ -87,7 +94,7 @@ test.describe("creator journey", () => {
         await page.goto("/signup");
         await page.getByLabel("Email").fill(address);
         await page.getByLabel("Password", { exact: true }).fill(`Pw-${randomUUID()}`);
-        await page.getByRole("button", { name: "Create my vault" }).click();
+        await page.getByRole("button", { name: "Create my account" }).click();
 
         await expect(page.getByText(NEUTRAL_SIGNUP_NOTICE)).toBeVisible({ timeout: 30_000 });
         await expect(page).toHaveURL(/\/signup$/);
@@ -128,8 +135,8 @@ test.describe("creator journey", () => {
         const contents = `Creator Lock end-to-end test asset ${randomUUID()}.`;
         await uploadThroughUi(page, filename, contents);
 
-        // --- it appears in My Vault -------------------------------------------
-        await page.getByRole("link", { name: "My Vault" }).click();
+        // --- it appears in My Files -------------------------------------------
+        await page.getByRole("link", { name: "My Files" }).click();
         await expect(page.getByRole("cell", { name: filename })).toBeVisible();
 
         // --- download returns the original bytes ------------------------------
@@ -154,7 +161,7 @@ test.describe("creator journey", () => {
         await page.waitForURL("/", { timeout: 20_000 });
 
         // --- protected pages are closed again ---------------------------------
-        await page.goto("/dashboard/vault");
+        await page.goto("/dashboard/files");
         await expect(page).toHaveURL(/\/login/);
       } finally {
         await removeAndProveGone([creator]);
@@ -193,7 +200,7 @@ test.describe("creator journey", () => {
         const stolenDelete = await intruderPage.request.delete(`/api/assets/${assetId}`);
         expect(stolenDelete.status()).toBe(404);
 
-        // And their own vault is empty.
+        // And their own library is empty.
         const intruderAssets = await intruderPage.request.get("/api/assets");
         const intruderBody = (await intruderAssets.json()) as { assets: unknown[] };
         expect(intruderBody.assets).toHaveLength(0);

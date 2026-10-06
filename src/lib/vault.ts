@@ -41,9 +41,17 @@ export class ValidationError extends Error {
   }
 }
 
+/** The user has not accepted the current Terms, Privacy Policy and upload-rights statement. */
+export class ConsentRequiredError extends Error {
+  constructor() {
+    super("Accept the Terms of Service and Privacy Policy before uploading.");
+    this.name = "ConsentRequiredError";
+  }
+}
+
 export class AssetNotFoundError extends Error {
   constructor() {
-    super("That file does not exist in your vault.");
+    super("That file does not exist in your library.");
     this.name = "AssetNotFoundError";
   }
 }
@@ -138,6 +146,11 @@ export async function createUpload(
   user: User,
   input: { filename: string; mimeType: string; sizeBytes: number },
 ): Promise<UploadTarget> {
+  // Checked before anything else, so no upload target is ever minted for a
+  // user who has not accepted. The database refuses the object and the asset
+  // row as well (migration 0011), which is what covers direct Storage calls.
+  await requireUploadConsent(supabase);
+
   const filename = sanitizeFilename(input.filename);
 
   const check = checkFile(filename, input.mimeType, input.sizeBytes);
@@ -188,6 +201,8 @@ export async function finalizeUpload(
   if (!ownedKeyPattern(user.id).test(input.storageKey)) {
     throw new ValidationError("That storage location does not belong to you.");
   }
+
+  await requireUploadConsent(supabase);
 
   const provider = getStorageProvider(supabase, ACTIVE_STORAGE_PROVIDER);
   const stored = await provider.stat(input.storageKey);
@@ -258,6 +273,61 @@ export async function finalizeUpload(
   }
 
   return data as AssetRow;
+}
+
+export interface ConsentStatus {
+  accepted: boolean;
+  termsVersion: string;
+  privacyVersion: string;
+  uploadRightsVersion: string;
+}
+
+/** The caller's acceptance state, read from the database (migration 0011). */
+export async function getUploadConsentStatus(supabase: SupabaseClient): Promise<ConsentStatus> {
+  const { data, error } = await supabase.rpc("upload_consent_status").single();
+  if (error || !data) throw new Error(error?.message ?? "Could not read consent status.");
+  const row = data as {
+    accepted: boolean;
+    terms_version: string;
+    privacy_version: string;
+    upload_rights_version: string;
+  };
+  return {
+    accepted: Boolean(row.accepted),
+    termsVersion: row.terms_version,
+    privacyVersion: row.privacy_version,
+    uploadRightsVersion: row.upload_rights_version,
+  };
+}
+
+async function requireUploadConsent(supabase: SupabaseClient): Promise<void> {
+  const status = await getUploadConsentStatus(supabase);
+  if (!status.accepted) throw new ConsentRequiredError();
+}
+
+export class StaleConsentError extends Error {
+  constructor() {
+    super("The Terms or Privacy Policy have changed. Please review the current version.");
+    this.name = "StaleConsentError";
+  }
+}
+
+/**
+ * Record acceptance of the exact versions the user was shown. The database
+ * attributes it to auth.uid() and refuses versions that are no longer current.
+ */
+export async function acceptUploadConsent(
+  supabase: SupabaseClient,
+  versions: { termsVersion: string; privacyVersion: string; uploadRightsVersion: string },
+): Promise<void> {
+  const { error } = await supabase.rpc("accept_legal_documents", {
+    p_terms_version: versions.termsVersion,
+    p_privacy_version: versions.privacyVersion,
+    p_upload_rights_version: versions.uploadRightsVersion,
+  });
+  if (!error) return;
+  if (error.code === "23514") throw new StaleConsentError();
+  throw new Error(error.message);
 }
 
 async function readOwnedAsset(

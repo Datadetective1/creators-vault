@@ -53,6 +53,12 @@ export default function PrivacyPage() {
             Paddle, not us, handles your card or other payment details.
           </li>
           <li>
+            <strong className="text-cream-50">Acceptance records</strong> — when you accept our
+            Terms of Service and Privacy Policy and confirm you have the rights to what you upload,
+            we record your account, which consent it was, the version of the document, and the time.
+            We do not record your IP address or device for this.
+          </li>
+          <li>
             <strong className="text-cream-50">Technical information</strong> — like most websites,
             our hosting and sign-in providers record your IP address, browser type and the time of
             requests, to keep the service running and secure.
@@ -68,13 +74,14 @@ export default function PrivacyPage() {
           <li>to create and secure your account, and let you sign in;</li>
           <li>to store your files and give them back to you when you ask;</li>
           <li>to apply your plan&rsquo;s storage allowance and manage your subscription;</li>
+          <li>to keep a record that you accepted our terms, and which version;</li>
           <li>to send account emails, such as confirming your address or resetting your password,
             and important notices about the service or your plan;</li>
           <li>to prevent abuse, investigate security problems, and meet our legal obligations.</li>
         </List>
         <p>
           Where laws such as the GDPR apply, we rely on: performing our contract with you (running
-          your account and vault), our legitimate interest in keeping {name} secure, and our legal
+          your account and storing your files), our legitimate interest in keeping {name} secure, and our legal
           obligations. We do not send marketing emails unless you have agreed to receive them.
         </p>
       </Section>
@@ -140,8 +147,9 @@ export default function PrivacyPage() {
 
       <Section id="cookies" title="6. Cookies">
         <p>
-          We use only the cookies needed to keep you signed in. They are essential for the service
-          to work, so there is no cookie banner. We do not use advertising or tracking cookies.
+          We use only the cookies needed to keep you signed in, plus one that remembers the
+          language you chose. Both are needed for the service to work as you asked, so there is no
+          cookie banner. We do not use advertising or tracking cookies.
         </p>
       </Section>
 
@@ -152,6 +160,8 @@ export default function PrivacyPage() {
           <li>When you close your account, we delete your account data and files within{" "}
             <Proposed term="accountDeletionDays" />. Encrypted backups kept by our providers may
             take a short while longer to expire.</li>
+          <li>Records of your acceptance of our terms are kept while your account exists and
+            for as long afterwards as we may need them to show what was agreed.</li>
           <li>Paddle keeps payment and tax records for as long as the law requires.</li>
           <li>Technical logs are kept only for as long as needed to operate and secure the
             service.</li>

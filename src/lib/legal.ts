@@ -8,10 +8,23 @@ import { PRODUCT_NAME } from "@/components/brand";
  * clearly marked "[To be confirmed: …]" placeholder instead of an invented
  * value. Each page reads from this one object.
  */
+/**
+ * Versions of the documents a user accepts before their first upload.
+ *
+ * Bump one ONLY for a material change, and in the same release add a migration
+ * that sets legal_documents.current_version to the new value: that is what
+ * makes every user re-accept before their next upload. Typo fixes and
+ * formatting do not need a bump. e2e/consent.spec.ts asserts these match the
+ * database.
+ */
+export const TERMS_VERSION = "2026-10-06";
+export const PRIVACY_VERSION = "2026-10-06";
+export const UPLOAD_RIGHTS_VERSION = "2026-10-06";
+
 export const LEGAL = {
   productName: PRODUCT_NAME,
   siteUrl: "https://www.creatorlock.app",
-  lastUpdated: "26 September 2026",
+  lastUpdated: "6 October 2026",
 
   /** The legal entity that operates Creator Lock and contracts with customers. */
   operatorName: "MERIDIAN VERTEX LLC" as string | null,

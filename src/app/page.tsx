@@ -1,6 +1,5 @@
 import Link from "next/link";
 
-import { PRODUCT_NAME } from "@/components/brand";
 import { ContentWall } from "@/components/content-wall";
 import { Hero } from "@/components/hero";
 import { HowItWorks } from "@/components/how-it-works";
@@ -10,16 +9,15 @@ import { PricingSection } from "@/components/pricing-section";
 import { Reveal } from "@/components/reveal";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteNav } from "@/components/site-nav";
-import { getDictionary } from "@/lib/i18n";
+import type { LandingMessages } from "@/lib/i18n";
+import { getI18n } from "@/lib/i18n/server";
 import { CONTENT_WALL } from "@/lib/media";
 import { getCurrentUser } from "@/lib/supabase/server";
 
-/** Base-language copy. One lookup point, so a locale is a file, not a hunt. */
-const en = getDictionary();
-
 export default async function HomePage() {
-  const user = await getCurrentUser();
+  const [user, { t }] = await Promise.all([getCurrentUser(), getI18n()]);
   const signedIn = Boolean(user);
+  const copy = t.landing;
 
   return (
     <>
@@ -27,14 +25,14 @@ export default async function HomePage() {
       <main id="main">
         <Hero signedIn={signedIn} />
         <PlatformMarquee />
-        <RiskSection />
-        <SolutionSection />
+        <RiskSection copy={copy.risk} />
+        <SolutionSection copy={copy.solution} />
         <HowItWorks />
         <ContentWall />
-        <TrustSection />
+        <TrustSection copy={copy.trust} />
         <PricingSection />
-        <Faq />
-        <FinalCta signedIn={signedIn} />
+        <Faq copy={copy.faq} />
+        <FinalCta copy={copy} signedIn={signedIn} />
       </main>
       <SiteFooter />
     </>
@@ -46,12 +44,12 @@ export default async function HomePage() {
 /* -------------------------------------------------------------------------- */
 
 /**
- * Ravi's wording, verbatim, from `en.risk`. The lead sentence of each point is
+ * Ravi's wording, verbatim, from `landing.risk`. The lead sentence of each point is
  * emphasised and the rest follows in the same paragraph — that is how he wrote
  * them, and splitting them into title/body pairs would change the reading.
  */
-function RiskSection() {
-  const { eyebrow, heading, points } = en.risk;
+function RiskSection({ copy }: { copy: LandingMessages["risk"] }) {
+  const { eyebrow, heading, points } = copy;
 
   return (
     <section className="border-t border-ink-800/80 py-20 sm:py-28">
@@ -102,7 +100,7 @@ function RiskSection() {
 /* -------------------------------------------------------------------------- */
 
 /**
- * Ravi's wording, verbatim, from `en.solution`.
+ * Ravi's wording, verbatim, from `landing.solution`.
  *
  * NOTE FOR WHOEVER SHIPS THIS PUBLICLY: "Sovereign Security" asserts hosting
  * in an independent, off-shore jurisdiction insulated from domestic law. The
@@ -112,8 +110,8 @@ function RiskSection() {
  * reproduced here as dictated and must be confirmed against the real
  * deployment region and reviewed legally before launch.
  */
-function SolutionSection() {
-  const { heading, blocks } = en.solution;
+function SolutionSection({ copy }: { copy: LandingMessages["solution"] }) {
+  const { heading, blocks } = copy;
 
   return (
     <section id="the-solution" className="scroll-mt-24 border-t border-ink-800/80 py-20 sm:py-28">
@@ -185,34 +183,19 @@ function ReclaimIcon() {
 /* Trust                                                                      */
 /* -------------------------------------------------------------------------- */
 
-const TRUST = [
-  {
-    title: "Private by default",
-    body: "Your vault is yours alone. No other user can list, open or download your files.",
-    icon: "lock" as const,
-  },
-  {
-    title: "Yours to download",
-    body: "Every file comes back out whenever you want it, in the format you put in.",
-    icon: "download" as const,
-  },
-  {
-    title: "You control what is stored",
-    body: "Upload what matters, delete what does not. Nothing is kept without you choosing it.",
-    icon: "sliders" as const,
-  },
-];
+/** Icons in the order of `landing.trust.items`. */
+const TRUST_ICONS = ["lock", "download", "sliders"] as const;
 
-function TrustSection() {
+function TrustSection({ copy }: { copy: LandingMessages["trust"] }) {
   return (
     <section className="border-t border-ink-800/80 py-16 sm:py-20">
       <div className="container-page">
         <div className="grid gap-4 sm:grid-cols-3">
-          {TRUST.map((item, index) => (
+          {copy.items.map((item, index) => (
             <Reveal key={item.title} delay={index * 80}>
               <div className="edge-glow h-full rounded-2xl border border-ink-700 bg-ink-850/70 p-6">
                 <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-ink-800 text-gold-400">
-                  <TrustIcon name={item.icon} />
+                  <TrustIcon name={TRUST_ICONS[index] ?? "lock"} />
                 </span>
                 <h3 className="mt-4 text-base font-semibold text-cream-50">{item.title}</h3>
                 <p className="mt-1.5 text-sm leading-relaxed text-muted">{item.body}</p>
@@ -256,46 +239,19 @@ function TrustIcon({ name }: { name: "lock" | "download" | "sliders" }) {
 /* FAQ                                                                        */
 /* -------------------------------------------------------------------------- */
 
-const FAQS = [
-  {
-    q: "Does this automatically back up my Instagram or YouTube?",
-    a: `No. ${PRODUCT_NAME} does not connect to social platforms and does not import anything automatically. You choose the files you want protected and upload them yourself.`,
-  },
-  {
-    q: "Can anyone else see my files?",
-    a: "No. Your vault is private. Files are stored in a private location and each file is locked to your account, so no other user can list, open or download them.",
-  },
-  {
-    q: "What kinds of files can I upload?",
-    a: "Videos, photos, thumbnails, audio, PDFs and documents, plus text files like scripts and subtitles. Individual files can be up to 5 GB.",
-  },
-  {
-    q: "Can I download my files whenever I want?",
-    a: "Yes. Every file in your vault can be downloaded at any time, and you can delete anything permanently whenever you choose.",
-  },
-  {
-    q: "What happens if I stop paying?",
-    a: "Your account moves back to the Free plan allowance. You keep access to your vault and can still download your files.",
-  },
-  {
-    q: "How do I pay?",
-    a: "Paid plans are handled by Paddle, which supports common payment methods for creators in India including UPI, as well as international cards. Prices do not include tax; Paddle adds any tax that applies where you live at checkout, before you pay.",
-  },
-];
-
-function Faq() {
+function Faq({ copy }: { copy: LandingMessages["faq"] }) {
   return (
     <section id="faq" className="scroll-mt-24 border-t border-ink-800/80 py-20 sm:py-28">
       <div className="container-page">
         <Reveal>
           <div className="max-w-2xl">
-            <p className="eyebrow">FAQ</p>
-            <h2 className="section-heading mt-3">Questions creators ask first.</h2>
+            <p className="eyebrow">{copy.eyebrow}</p>
+            <h2 className="section-heading mt-3">{copy.heading}</h2>
           </div>
         </Reveal>
 
         <div className="mt-10 grid max-w-4xl gap-3">
-          {FAQS.map((item, index) => (
+          {copy.items.map((item, index) => (
             <Reveal key={item.q} delay={index * 45}>
               <details className="group rounded-2xl border border-ink-700 bg-ink-850/70 px-5 py-4 transition-colors hover:border-ink-600 [&_summary::-webkit-details-marker]:hidden">
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-base font-medium text-cream-50">
@@ -326,7 +282,9 @@ function PlusIcon() {
 /* Final CTA                                                                  */
 /* -------------------------------------------------------------------------- */
 
-function FinalCta({ signedIn }: { signedIn: boolean }) {
+function FinalCta({ copy, signedIn }: { copy: LandingMessages; signedIn: boolean }) {
+  const { hero, finalCta } = copy;
+
   return (
     <section className="pb-20 pt-4 sm:pb-28">
       <div className="container-page">
@@ -340,20 +298,18 @@ function FinalCta({ signedIn }: { signedIn: boolean }) {
                   "radial-gradient(ellipse 50% 60% at 50% 50%, rgba(255,61,127,0.35), rgba(123,47,247,0.22) 50%, transparent 72%)",
               }}
             />
-            <h2 className="section-heading relative">Keep your own copy of your best work.</h2>
-            <p className="prose-muted relative mx-auto mt-4 max-w-md">
-              Upload what matters. Get it back whenever you need it.
-            </p>
+            <h2 className="section-heading relative">{finalCta.heading}</h2>
+            <p className="prose-muted relative mx-auto mt-4 max-w-md">{finalCta.body}</p>
             <div className="relative mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Link
                 href={signedIn ? "/dashboard" : "/signup"}
                 className="btn-primary w-full px-7 py-3.5 text-base sm:w-auto"
               >
-                {signedIn ? "Go to my vault" : "Protect My Content"}
+                {signedIn ? hero.ctaPrimarySignedIn : hero.ctaPrimary}
               </Link>
               {!signedIn && (
                 <Link href="/login" className="btn-secondary w-full px-7 py-3.5 text-base sm:w-auto">
-                  I already have an account
+                  {finalCta.login}
                 </Link>
               )}
             </div>

@@ -15,6 +15,7 @@ enough.
 |---|---|
 | `supabase-shim.sql` | A stand-in for the parts of a hosted Supabase project the migrations depend on but do not create: `auth.users`, `auth.uid()`, `storage.buckets`, `storage.objects`, `storage.foldername()`, the `anon` / `authenticated` / `service_role` roles, and Supabase's default blanket grants. |
 | `0007_regression.sql` | 33 assertions: 11 that the ordinary upload → list → download → delete flow still works, and 22 that each measured exploit is now refused. |
+| `0011_consent.sql` | 16 assertions for the Terms/Privacy/upload-rights gate: a new user cannot land an object or an asset row by any route (including storage-api's no-`auth.uid()` signed-upload path), acceptance cannot be forged or recorded for a stale version, accepting unlocks, a version bump forces re-acceptance, and no IP/device data is stored. |
 
 The shim ends with a self-assertion block that aborts if its own contract is
 broken — in particular if any role came out `SUPERUSER` or `BYPASSRLS`, which
@@ -34,7 +35,14 @@ done
 su postgres -c "psql -q -d cv_test -f -" < supabase/tests/0007_regression.sql
 ```
 
-The last command prints a table; the final row must read `33 | 0`.
+The last command prints a table; the final row must read `33 | 0`. Run
+`0011_consent.sql` the same way; its final row must read `16 | 0`.
+
+Without a local PostgreSQL, the same files run on PGlite (Postgres compiled to
+WebAssembly, `npm i @electric-sql/pglite` in a scratch folder, with the
+`pgcrypto` contrib extension): load the shim, then every migration, then run
+each suite one statement at a time so a failing statement is skipped as psql
+would skip it.
 
 Files are fed over stdin because `psql` runs as the `postgres` OS user and may
 not be able to read a path under your home directory.

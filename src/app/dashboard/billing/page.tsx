@@ -4,20 +4,17 @@ import { ManageBillingButton } from "@/components/manage-billing-button";
 import { PlanPicker } from "@/components/plan-picker";
 import { formatDate } from "@/lib/format";
 import { isPaddleConfigured, publicEnv } from "@/lib/env";
+import { fmt } from "@/lib/i18n";
+import { getI18n } from "@/lib/i18n/server";
 import { createClient, getCurrentUser } from "@/lib/supabase/server";
 import { getVaultSummary } from "@/lib/vault";
 
-export const metadata: Metadata = { title: "Plan" };
-export const dynamic = "force-dynamic";
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getI18n();
+  return { title: t.common.dashboardNav.plan };
+}
 
-const STATUS_LABEL: Record<string, string> = {
-  active: "Active",
-  trialing: "Trial",
-  past_due: "Payment overdue",
-  paused: "Paused",
-  canceled: "Cancelled",
-  inactive: "Inactive",
-};
+export const dynamic = "force-dynamic";
 
 export default async function BillingPage({
   searchParams,
@@ -29,18 +26,19 @@ export default async function BillingPage({
   const { checkout } = await searchParams;
 
   const supabase = await createClient();
-  const summary = await getVaultSummary(supabase, user);
+  const [summary, { locale, t }] = await Promise.all([getVaultSummary(supabase, user), getI18n()]);
   const paddleReady = isPaddleConfigured();
+  const d = t.dashboard;
+  const plan = t.pricing.plans[summary.plan.tier];
+  const statusLabel: Record<string, string> = d.status;
 
   return (
     <div className="mx-auto max-w-4xl space-y-7">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight text-cream-50 sm:text-3xl">
-          Your plan
+          {d.billing.heading}
         </h1>
-        <p className="mt-1 text-sm text-muted">
-          Change how much storage your vault has.
-        </p>
+        <p className="mt-1 text-sm text-muted">{d.billing.intro}</p>
       </div>
 
       {checkout === "complete" && summary.plan.tier === "free" && (
@@ -48,39 +46,41 @@ export default async function BillingPage({
           role="status"
           className="rounded-xl border border-gold-400/40 bg-gold-400/10 px-4 py-3 text-sm text-gold-300"
         >
-          Payment received. Your plan updates as soon as Paddle confirms it — usually within a
-          minute. Refresh this page to see it.
+          {d.billing.checkoutComplete}
         </p>
       )}
 
       <div className="card">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <p className="text-sm text-muted">Current plan</p>
+            <p className="text-sm text-muted">{d.currentPlan}</p>
             <p className="mt-1 text-xl font-semibold text-cream-50">
-              {summary.plan.name}{" "}
+              {plan.name}{" "}
               <span className="text-base font-normal text-muted">
-                &middot; {summary.plan.storageLabel}
+                &middot; {plan.storageLabel}
               </span>
             </p>
           </div>
           <span className="rounded-full border border-ink-600 bg-ink-800 px-3 py-1 text-xs font-medium text-cream-300">
-            {STATUS_LABEL[summary.status] ?? summary.status}
+            {statusLabel[summary.status] ?? summary.status}
           </span>
         </div>
 
         {summary.plan.tier !== "free" && summary.scheduledCancelAt ? (
           <p className="mt-4 text-sm text-muted">
-            Cancelled — you keep {summary.plan.name} until{" "}
-            {formatDate(summary.scheduledCancelAt)}, then move to Free. You will not be charged
-            again.
+            {fmt(d.billing.cancelScheduled, {
+              plan: plan.name,
+              date: formatDate(summary.scheduledCancelAt, locale),
+              free: t.pricing.plans.free.name,
+            })}
           </p>
         ) : (
           summary.currentPeriodEnd &&
           summary.plan.tier !== "free" && (
             <p className="mt-4 text-sm text-muted">
-              {summary.status === "canceled" ? "Access ends" : "Renews"} on{" "}
-              {formatDate(summary.currentPeriodEnd)}.
+              {fmt(summary.status === "canceled" ? d.billing.accessEndsOn : d.billing.renewsOn, {
+                date: formatDate(summary.currentPeriodEnd, locale),
+              })}
             </p>
           )
         )}
@@ -97,11 +97,9 @@ export default async function BillingPage({
 
       {summary.hasPaddleSubscription && (
         <div className="card">
-          <h2 className="text-base font-semibold text-cream-50">Cancel or update payment</h2>
+          <h2 className="text-base font-semibold text-cream-50">{d.billing.manageHeading}</h2>
           <p className="mt-2 text-sm leading-relaxed text-muted">
-            Your subscription is managed by Paddle, our payment provider. Cancelling moves you
-            back to the Free plan at the end of your billing period — your files stay in your
-            vault and remain downloadable.
+            {d.billing.manageBody}
           </p>
           {paddleReady && <ManageBillingButton />}
         </div>

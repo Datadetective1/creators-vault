@@ -5,11 +5,8 @@ import { HeroBackdrop } from "@/components/hero-backdrop";
 import { MediaTile } from "@/components/media-tile";
 import { PlatformLock } from "@/components/platform-lock";
 import { Reveal } from "@/components/reveal";
-import { getDictionary } from "@/lib/i18n";
+import { getI18n } from "@/lib/i18n/server";
 import { HERO_TILES } from "@/lib/media";
-
-/** Base-language copy. One lookup point, so a locale is a file, not a hunt. */
-const en = getDictionary();
 
 /**
  * Split hero: the promise on the left, the creator's own content on the right.
@@ -25,7 +22,9 @@ const en = getDictionary();
  * its whole argument — this is your content, this is where it goes — inside
  * the first screen and a half.
  */
-export function Hero({ signedIn }: { signedIn: boolean }) {
+export async function Hero({ signedIn }: { signedIn: boolean }) {
+  const { hero, marquee } = (await getI18n()).t.landing;
+
   return (
     <section className="relative overflow-hidden pb-14 pt-6 sm:pb-24 sm:pt-14">
       <HeroBackdrop />
@@ -54,25 +53,25 @@ export function Hero({ signedIn }: { signedIn: boolean }) {
                   <span className="absolute inline-flex h-full w-full animate-pulse-ring rounded-full bg-gold-400" />
                   <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-gold-400" />
                 </span>
-                {en.hero.eyebrow}
+                {hero.eyebrow}
               </p>
             </Reveal>
 
             <Reveal delay={70}>
               <h1 className="display mt-4 text-[2rem] leading-[1.14] sm:text-[3rem] lg:text-[3.6rem]">
-                <ContentEquation lines={en.hero.equation} />
+                <ContentEquation lines={hero.equation} />
               </h1>
             </Reveal>
           </div>
 
           <Reveal delay={160} className="lg:col-start-2 lg:row-span-2 lg:row-start-1">
-            <HeroCollage />
+            <HeroCollage chip={hero.protectedChip} note={marquee.heroNote} />
           </Reveal>
 
           <div className="text-center lg:col-start-1 lg:row-start-2 lg:self-start lg:text-left">
             <Reveal delay={140}>
               <p className="mx-auto mt-2 max-w-lg text-balance text-lg font-medium leading-snug text-cream-50 sm:text-xl lg:mx-0">
-                {en.hero.support}
+                {hero.support}
               </p>
             </Reveal>
 
@@ -82,19 +81,19 @@ export function Hero({ signedIn }: { signedIn: boolean }) {
                   href={signedIn ? "/dashboard" : "/signup"}
                   className="btn-primary w-full px-7 py-3.5 text-base sm:w-auto"
                 >
-                  {signedIn ? en.hero.ctaPrimarySignedIn : en.hero.ctaPrimary}
+                  {signedIn ? hero.ctaPrimarySignedIn : hero.ctaPrimary}
                 </Link>
                 <Link
                   href="#how-it-works"
                   className="btn-secondary w-full px-7 py-3.5 text-base sm:w-auto"
                 >
-                  {en.hero.ctaSecondary}
+                  {hero.ctaSecondary}
                 </Link>
               </div>
             </Reveal>
 
             <Reveal delay={280}>
-              <ProcessLabels steps={en.hero.steps} />
+              <ProcessLabels steps={hero.steps} />
             </Reveal>
           </div>
         </div>
@@ -147,7 +146,7 @@ function ArrowRight() {
 /**
  * The creator's own content, then the lock that content flows into.
  */
-function HeroCollage() {
+function HeroCollage({ chip, note }: { chip: string; note: string }) {
   const [reel, podcast, video] = HERO_TILES;
 
   return (
@@ -210,7 +209,7 @@ function HeroCollage() {
         >
           <span className="glass inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-xs font-semibold text-cream-50 shadow-xl shadow-black/50">
             <LockChipIcon />
-            Protected in your vault
+            {chip}
           </span>
         </div>
       </div>
@@ -225,7 +224,7 @@ function HeroCollage() {
           the marquee's disclaimer nowhere in sight.
         */}
         <p className="mx-auto mt-1 max-w-xs text-balance text-center text-xs leading-relaxed text-muted">
-          {en.marquee.heroNote}
+          {note}
         </p>
       </div>
     </div>

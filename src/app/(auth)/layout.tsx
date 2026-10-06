@@ -1,13 +1,19 @@
 import Link from "next/link";
 
 import { Logo, PRODUCT_NAME } from "@/components/brand";
+import { LanguageSelect } from "@/components/language-select";
+import { fmt } from "@/lib/i18n";
+import { getI18n } from "@/lib/i18n/server";
 
-export default function AuthLayout({ children }: { children: React.ReactNode }) {
+export default async function AuthLayout({ children }: { children: React.ReactNode }) {
+  const { t } = await getI18n();
+
   return (
     <div className="flex min-h-screen flex-col">
       <header className="border-b border-ink-800">
-        <div className="container-page flex h-16 items-center">
+        <div className="container-page flex h-16 items-center justify-between gap-4">
           <Logo />
+          <LanguageSelect />
         </div>
       </header>
 
@@ -27,16 +33,16 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       <footer className="border-t border-ink-800 py-6">
         <div className="container-page flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-muted">
           <Link href="/" className="transition-colors hover:text-cream-50">
-            &larr; Back to {PRODUCT_NAME}
+            &larr; {fmt(t.common.backTo, { product: PRODUCT_NAME })}
           </Link>
           <Link href="/terms" className="transition-colors hover:text-cream-50">
-            Terms
+            {t.common.legalLinks.termsShort}
           </Link>
           <Link href="/privacy" className="transition-colors hover:text-cream-50">
-            Privacy
+            {t.common.legalLinks.privacyShort}
           </Link>
           <Link href="/refunds" className="transition-colors hover:text-cream-50">
-            Refunds
+            {t.common.legalLinks.refundsShort}
           </Link>
         </div>
       </footer>

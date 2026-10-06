@@ -1,15 +1,18 @@
 import { MediaTile } from "@/components/media-tile";
 import { Reveal } from "@/components/reveal";
+import { fmt } from "@/lib/i18n";
+import { getI18n } from "@/lib/i18n/server";
 import { CONTENT_WALL } from "@/lib/media";
 
 /**
- * "All of this can live in your vault."
+ * "All of this can live in your private library."
  *
  * Desktop gets a real masonry column flow so the mixed aspect ratios interlock
  * rather than sitting in a rigid grid. Phones get a two-row swipeable rail
  * instead — stacking twelve tiles vertically would bury the rest of the page.
  */
-export function ContentWall() {
+export async function ContentWall() {
+  const { contentWall: copy } = (await getI18n()).t.landing;
   const [topRow, bottomRow] = [CONTENT_WALL.slice(0, 6), CONTENT_WALL.slice(6)];
 
   return (
@@ -17,13 +20,9 @@ export function ContentWall() {
       <div className="container-page">
         <Reveal>
           <div className="max-w-2xl">
-            <p className="eyebrow">What you can protect</p>
-            <h2 className="section-heading mt-3">
-              All of this can live in your vault.
-            </h2>
-            <p className="prose-muted mt-4 max-w-xl">
-              Video, photos, audio, artwork, documents — whatever your business would miss.
-            </p>
+            <p className="eyebrow">{copy.eyebrow}</p>
+            <h2 className="section-heading mt-3">{copy.heading}</h2>
+            <p className="prose-muted mt-4 max-w-xl">{copy.intro}</p>
           </div>
         </Reveal>
       </div>
@@ -38,7 +37,7 @@ export function ContentWall() {
             className="rail pb-1"
             tabIndex={0}
             role="group"
-            aria-label="Content you can protect, row 1 of 2"
+            aria-label={fmt(copy.railLabel, { row: 1, total: 2 })}
           >
             {topRow.map((item) => (
               <div key={item.src} className="rail-item w-[42vw] max-w-[11rem]">
@@ -59,7 +58,7 @@ export function ContentWall() {
             className="rail pb-1"
             tabIndex={0}
             role="group"
-            aria-label="Content you can protect, row 2 of 2"
+            aria-label={fmt(copy.railLabel, { row: 2, total: 2 })}
           >
             {bottomRow.map((item) => (
               <div key={item.src} className="rail-item w-[42vw] max-w-[11rem]">
@@ -72,7 +71,7 @@ export function ContentWall() {
             ))}
           </div>
         </div>
-        <p className="container-page pt-1 text-xs text-muted">Swipe or scroll to see more &rarr;</p>
+        <p className="container-page pt-1 text-xs text-muted">{copy.swipeHint}</p>
       </Reveal>
 
       {/* --- tablet and up: masonry --- */}

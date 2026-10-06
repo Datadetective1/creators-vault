@@ -117,6 +117,47 @@ export async function deleteUsersByEmail(email: string): Promise<void> {
   }
 }
 
+/**
+ * Record Terms/Privacy/upload-rights acceptance for a test user, as if they
+ * had ticked the boxes. `version` defaults to each document's current version;
+ * pass an old one to simulate a user who accepted before a material change.
+ * The service role writes directly, since accept_legal_documents() only acts
+ * for auth.uid().
+ */
+export async function grantConsent(userId: string, version?: string): Promise<void> {
+  const client = admin();
+  const { data, error } = await client.from("legal_documents").select("consent_type, current_version");
+  if (error || !data) throw new Error(`Could not read legal versions (${error?.message}).`);
+  const rows = data.map((doc) => ({
+    user_id: userId,
+    consent_type: doc.consent_type as string,
+    version: version ?? (doc.current_version as string),
+  }));
+  const { error: insertError } = await client.from("legal_acceptances").insert(rows);
+  if (insertError) throw new Error(`Could not record consent (${insertError.message}).`);
+}
+
+/** The acceptance rows stored for a user. */
+export async function consentRowsFor(userId: string) {
+  const { data, error } = await admin()
+    .from("legal_acceptances")
+    .select("consent_type, version, accepted_at")
+    .eq("user_id", userId);
+  if (error) throw new Error(`Could not read consent rows (${error.message}).`);
+  return data ?? [];
+}
+
+/** A user-scoped client (anon key + the user's session), as a browser script would hold. */
+export async function userClient(user: TestUser): Promise<SupabaseClient> {
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
+  const client = createClient(url, anonKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+  const { error } = await client.auth.signInWithPassword({ email: user.email, password: user.password });
+  if (error) throw new Error(`Could not sign in the test user (${error.message}).`);
+  return client;
+}
+
 /** What remains in the database and bucket for a user id — used to prove cleanup. */
 export async function leftoversFor(userId: string) {
   const client = admin();

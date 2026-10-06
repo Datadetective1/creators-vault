@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 
 import { isSupabaseConfigured, siteUrl } from "@/lib/env";
+import { getI18n } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
 import { safeNextPath } from "@/lib/safe-redirect";
 
@@ -12,10 +13,14 @@ export interface AuthFormState {
   notice?: string;
 }
 
-const NOT_CONFIGURED: AuthFormState = {
-  error:
-    "Accounts are not available yet — this deployment is not connected to its database. Please check back shortly.",
-};
+/**
+ * The visitor's auth copy. Messages are returned in their language; what they
+ * say — and so what they reveal about which accounts exist — is the same in
+ * every locale.
+ */
+async function authCopy() {
+  return (await getI18n()).t.auth;
+}
 
 function readCredentials(formData: FormData) {
   return {
@@ -30,14 +35,15 @@ export async function signUpAction(
   _prev: AuthFormState,
   formData: FormData,
 ): Promise<AuthFormState> {
-  if (!isSupabaseConfigured()) return NOT_CONFIGURED;
+  const copy = await authCopy();
+  if (!isSupabaseConfigured()) return { error: copy.errors.notConfigured };
 
   const { email, password } = readCredentials(formData);
   const displayName = String(formData.get("display_name") ?? "").trim();
 
-  if (!email || !password) return { error: "Enter your email and a password." };
+  if (!email || !password) return { error: copy.errors.signUpMissing };
   if (password.length < 8) {
-    return { error: "Use a password of at least 8 characters." };
+    return { error: copy.errors.passwordTooShort };
   }
 
   const supabase = await createClient();
@@ -55,19 +61,14 @@ export async function signUpAction(
     // returns "User already registered", which is exactly the enumeration
     // oracle the identities check below exists to prevent.
     console.error("[auth] signUp failed", error.message);
-    return {
-      notice:
-        "Check your email for a confirmation link to finish setting up your vault.",
-    };
+    return { notice: copy.notices.confirmEmail };
   }
 
   // Supabase returns a user with no identities when the address is already
   // registered. Report the same neutral message either way so the form cannot
   // be used to discover which emails have accounts.
   if (data.user && data.user.identities?.length === 0) {
-    return {
-      notice: "Check your email for a confirmation link to finish setting up your vault.",
-    };
+    return { notice: copy.notices.confirmEmail };
   }
 
   // A session here means email confirmation is switched off in Supabase.
@@ -76,26 +77,25 @@ export async function signUpAction(
     redirect("/dashboard");
   }
 
-  return {
-    notice: "Check your email for a confirmation link to finish setting up your vault.",
-  };
+  return { notice: copy.notices.confirmEmail };
 }
 
 export async function signInAction(
   _prev: AuthFormState,
   formData: FormData,
 ): Promise<AuthFormState> {
-  if (!isSupabaseConfigured()) return NOT_CONFIGURED;
+  const copy = await authCopy();
+  if (!isSupabaseConfigured()) return { error: copy.errors.notConfigured };
 
   const { email, password } = readCredentials(formData);
-  if (!email || !password) return { error: "Enter your email and password." };
+  if (!email || !password) return { error: copy.errors.signInMissing };
 
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) {
     // Deliberately generic: do not reveal whether the address exists.
-    return { error: "That email and password combination did not work." };
+    return { error: copy.errors.signInFailed };
   }
 
   revalidatePath("/", "layout");
@@ -106,10 +106,11 @@ export async function requestPasswordResetAction(
   _prev: AuthFormState,
   formData: FormData,
 ): Promise<AuthFormState> {
-  if (!isSupabaseConfigured()) return NOT_CONFIGURED;
+  const copy = await authCopy();
+  if (!isSupabaseConfigured()) return { error: copy.errors.notConfigured };
 
   const { email } = readCredentials(formData);
-  if (!email) return { error: "Enter your email address." };
+  if (!email) return { error: copy.errors.emailMissing };
 
   const supabase = await createClient();
   await supabase.auth.resetPasswordForEmail(email, {
@@ -117,22 +118,21 @@ export async function requestPasswordResetAction(
   });
 
   // Always the same response, whether or not the account exists.
-  return {
-    notice: "If an account exists for that address, a password reset link is on its way.",
-  };
+  return { notice: copy.notices.resetSent };
 }
 
 export async function updatePasswordAction(
   _prev: AuthFormState,
   formData: FormData,
 ): Promise<AuthFormState> {
-  if (!isSupabaseConfigured()) return NOT_CONFIGURED;
+  const copy = await authCopy();
+  if (!isSupabaseConfigured()) return { error: copy.errors.notConfigured };
 
   const password = String(formData.get("password") ?? "");
   const confirm = String(formData.get("confirm_password") ?? "");
 
-  if (password.length < 8) return { error: "Use a password of at least 8 characters." };
-  if (password !== confirm) return { error: "Those passwords do not match." };
+  if (password.length < 8) return { error: copy.errors.passwordTooShort };
+  if (password !== confirm) return { error: copy.errors.passwordMismatch };
 
   const supabase = await createClient();
   const {
@@ -140,7 +140,7 @@ export async function updatePasswordAction(
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return { error: "This reset link has expired. Request a new one and try again." };
+    return { error: copy.errors.resetExpired };
   }
 
   const { error } = await supabase.auth.updateUser({ password });
@@ -148,7 +148,7 @@ export async function updatePasswordAction(
     // e.g. "New password should be different from the old password" confirms a
     // guess about the current one.
     console.error("[auth] updateUser failed", error.message);
-    return { error: "That password could not be saved. Try a different one." };
+    return { error: copy.errors.passwordNotSaved };
   }
 
   revalidatePath("/", "layout");

@@ -1,8 +1,5 @@
 import { PLATFORMS } from "@/components/platform-icons";
-import { getDictionary } from "@/lib/i18n";
-
-/** Base-language copy. One lookup point, so a locale is a file, not a hunt. */
-const en = getDictionary();
+import { getI18n } from "@/lib/i18n/server";
 
 /**
  * The running banner Ravi sketched — with the claim removed.
@@ -32,14 +29,16 @@ const en = getDictionary();
 
 const REPEATS = [0, 1, 2];
 
-export function PlatformMarquee() {
+export async function PlatformMarquee() {
+  const { marquee } = (await getI18n()).t.landing;
+
   return (
     <section
-      aria-label="Platforms this is built for"
+      aria-label={marquee.ariaLabel}
       className="border-y border-ink-800/80 bg-ink-900/40 py-5"
     >
       <p className="container-page mb-4 text-center text-xs font-semibold uppercase tracking-[0.18em] text-muted">
-        {en.marquee.lead}
+        {marquee.lead}
       </p>
 
       <div className="marquee-mask relative overflow-hidden">
@@ -74,7 +73,7 @@ export function PlatformMarquee() {
       </div>
 
       <p className="container-page mt-4 text-center text-xs leading-relaxed text-muted">
-        {en.marquee.disclaimer}
+        {marquee.disclaimer}
       </p>
     </section>
   );

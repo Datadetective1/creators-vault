@@ -66,7 +66,7 @@ export const dashboard = {
     startFailed: "Could not start checkout.",
     stillLoading: "Checkout is still loading. Please try again in a moment.",
     legalNote:
-      "Payments are processed by Paddle, our Merchant of Record. Prices are in US dollars. In India and Bangladesh tax is already included; elsewhere any tax that applies is shown at checkout before you pay. {plan} renews monthly until you cancel, and any payment can be refunded within 14 days. See our {terms} and {refunds}.",
+      "Payments are processed by Paddle, our Merchant of Record. Prices are shown in your local currency where Paddle offers one, and tax is either included or shown at checkout before you pay. {plan} renews monthly until you cancel, and any payment can be refunded within 14 days. See our {terms} and {refunds}.",
     billingQuestions: "Billing questions: {email}.",
   },
   storage: {

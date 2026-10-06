@@ -42,6 +42,7 @@ async function paddlePreview(country: string) {
   return {
     currency: body.data.currency_code as string,
     total: line.formatted_totals.total as string,
+    totalMinor: Number(line.totals.total),
     tax: line.formatted_totals.tax as string,
     taxCents: Number(line.totals.tax),
   };
@@ -57,7 +58,20 @@ test.describe("price shown matches Paddle for the visitor's country", () => {
       const page = await context.newPage();
       await page.goto("/pricing");
 
-      await expect(page.getByTestId("creator-price")).toHaveText(expected.total);
+      // Paddle's own amount, shown without a ".00" on whole numbers.
+      const major = expected.totalMinor / 100;
+      const label = new Intl.NumberFormat(expected.currency === "INR" ? "en-IN" : "en-US", {
+        style: "currency",
+        currency: expected.currency,
+        minimumFractionDigits: Number.isInteger(major) ? 0 : 2,
+      }).format(major);
+      await expect(page.getByTestId("creator-price")).toHaveText(label);
+      if (country === "IN") {
+        // The India requirement: rupees from Paddle, never a USD figure.
+        expect(expected.currency).toBe("INR");
+        await expect(page.getByTestId("creator-price")).toHaveText("₹399");
+        await expect(page.locator("main")).not.toContainText("$4");
+      }
       if (expected.taxCents > 0) {
         await expect(page.getByTestId("creator-tax-note")).toContainText(expected.tax);
       }

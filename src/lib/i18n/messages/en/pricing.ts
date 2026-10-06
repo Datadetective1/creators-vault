@@ -42,7 +42,7 @@ export const pricing = {
        */
       localTaxIncluded: "Includes {tax} tax in {country}. The price at checkout is the same.",
       taxNote:
-        "Charged in US dollars. Tax is included in India and Bangladesh; in some other countries it is added at checkout.",
+        "Shown in US dollars. In India, Creator is priced in Indian rupees. Depending on your country, tax is included or added at checkout.",
       tagline: "20 GB or 100 GB — the price is the same.",
       storageLabel: "Up to 100 GB",
       storageCaption: "Up to 100 GB — flat, however much you store",
@@ -64,9 +64,9 @@ export const pricing = {
     heading: "How billing works",
     /** {price} is the Creator price with its period, e.g. "$4/month". */
     price:
-      "Creator is {price}, charged in US dollars. In India and Bangladesh that price already includes GST/VAT. In some other countries, such as the US, tax is added on top — it is calculated and shown at checkout before you pay.",
+      "Creator is {price}. Paddle charges it in your local currency where one is set — Indian rupees in India, US dollars in most other countries. Depending on where you live, tax is either already included or calculated and shown at checkout before you pay.",
     paddle:
-      "Payments are processed by Paddle, our Merchant of Record. You can pay by card or PayPal. Creator renews monthly until you cancel.",
+      "Payments are processed by Paddle, our Merchant of Record. Checkout shows the payment methods available in your country. Creator renews monthly until you cancel.",
     cancel:
       "Cancel any time from your Plan page. You keep Creator until the end of the month you have paid for, then move to Free — your files are never deleted.",
     /** {refunds} and {terms} become links. */

@@ -33,6 +33,7 @@ export function PlanPicker({
   environment,
   customerEmail,
   paddleCustomerId,
+  creatorPriceLabel,
 }: {
   currentTier: PlanTier;
   paddleReady: boolean;
@@ -41,6 +42,8 @@ export function PlanPicker({
   customerEmail: string;
   /** The signed-in user's Paddle customer id (ctm_…), once they have one. */
   paddleCustomerId: string | null;
+  /** The Creator price as Paddle charges it in this visitor's country. */
+  creatorPriceLabel?: string;
 }) {
   const { t } = useI18n();
   const d = t.dashboard;
@@ -171,7 +174,9 @@ export function PlanPicker({
 
               <p className="mt-3 flex flex-wrap items-baseline gap-x-0.5">
                 <span className="text-2xl font-semibold tracking-tight text-gold-400">
-                  {tier === "free" ? t.pricing.plans.free.priceLabel : plan.priceLabel}
+                  {tier === "free"
+                    ? t.pricing.plans.free.priceLabel
+                    : (creatorPriceLabel ?? plan.priceLabel)}
                 </span>
                 {tier === "creator" && (
                   <span className="text-sm text-muted">{t.pricing.plans.creator.pricePeriod}</span>

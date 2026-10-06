@@ -14,13 +14,13 @@ import { isPaddleConfigured, publicEnv } from "@/lib/env";
  *
  * Country comes from Vercel's `x-vercel-ip-country` header. With no country,
  * no billing configuration, or any Paddle error, this returns null and the
- * page shows the catalog price (US$4) with "+ applicable tax" — the same
- * wording as before, which stays true everywhere.
+ * page shows the catalog price (US$4) with the general tax note, which
+ * stays true everywhere.
  */
 export interface LocalPrice {
   country: string;
   currency: string;
-  /** Paddle-formatted total, e.g. "$4.00" or "₹349.00". */
+  /** Paddle's total in its currency, formatted for display, e.g. "$4" or "₹399". */
   total: string;
   /** Paddle-formatted tax included in the total, or null when tax is added at checkout. */
   taxIncluded: string | null;
@@ -72,7 +72,7 @@ async function fetchPreview(country: string): Promise<LocalPrice | null> {
         currency_code?: string;
         details?: {
           line_items?: Array<{
-            totals?: { tax?: string };
+            totals?: { tax?: string; total?: string };
             formatted_totals?: { total?: string; tax?: string };
           }>;
         };
@@ -85,9 +85,30 @@ async function fetchPreview(country: string): Promise<LocalPrice | null> {
     return {
       country,
       currency: body.data.currency_code,
-      total: line.formatted_totals.total,
+      total: displayAmount(line.totals?.total, body.data.currency_code) ?? line.formatted_totals.total,
       taxIncluded: taxCents > 0 ? (line.formatted_totals.tax ?? null) : null,
     };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Paddle's amount (in minor units) as a short label: "₹399" rather than
+ * "₹399.00", while "$4.35" stays as is. The number is Paddle's; only the
+ * presentation is ours.
+ */
+function displayAmount(minor: string | undefined, currency: string): string | null {
+  const value = Number(minor);
+  if (!minor || !Number.isFinite(value)) return null;
+  const major = value / 100;
+  try {
+    return new Intl.NumberFormat(currency === "INR" ? "en-IN" : "en-US", {
+      style: "currency",
+      currency,
+      minimumFractionDigits: Number.isInteger(major) ? 0 : 2,
+      maximumFractionDigits: 2,
+    }).format(major);
   } catch {
     return null;
   }

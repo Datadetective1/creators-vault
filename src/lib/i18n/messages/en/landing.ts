@@ -290,13 +290,13 @@ export const landing: LandingMessages = {
       {
         q: "How do I pay?",
         /**
-         * Facts only: Paddle is the Merchant of Record; India accepts cards
-         * and PayPal, NOT UPI; the Creator plan is billed in US dollars; the
-         * checkout price already includes tax in India (18% GST) and
-         * Bangladesh, while some other countries (e.g. the US) add it at
-         * checkout. An earlier version claimed UPI — do not bring it back.
+         * Facts only: Paddle is the Merchant of Record. India has a rupee price
+         * (a Paddle unit_price_overrides entry on the live price); elsewhere
+         * the price is US dollars. Payment methods are whatever Paddle Checkout
+         * offers in the buyer's country — do not claim a method is or is not
+         * available unless it has been checked in the live checkout.
          */
-        a: `Payments are processed by Paddle, our Merchant of Record. In India you can pay by card or PayPal — UPI is not supported. The Creator plan is billed in US dollars at ${PLANS.creator.priceLabel} a month. In India and Bangladesh, the price shown at checkout already includes any applicable tax (18% GST in India). In some other countries, such as the US, tax is added at checkout before you pay.`,
+        a: `Payments are processed by Paddle, our Merchant of Record. In India the Creator plan is priced in Indian rupees with GST included; in most other countries it is billed in US dollars at ${PLANS.creator.priceLabel} a month. Checkout shows the payment methods available in your country, and either includes tax in the price or adds it before you pay, depending on where you live.`,
       },
     ],
   },

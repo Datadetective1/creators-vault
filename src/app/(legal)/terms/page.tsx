@@ -92,14 +92,16 @@ export default function TermsPage() {
           </li>
           <li>
             <strong className="text-cream-50">Creator</strong> includes up to{" "}
-            {LEGAL.creatorStorage} of storage for {LEGAL.creatorPrice}. Any tax that applies where
-            you live is calculated and shown at checkout before you pay.
+            {LEGAL.creatorStorage} of storage for {LEGAL.creatorPrice} (in India, the rupee price
+            shown on our pricing page and at checkout). Any tax that applies where you live is
+            calculated and shown at checkout before you pay.
           </li>
           <li>Individual files can be up to {LEGAL.maxFileSize}.</li>
           <li>
-            Prices are charged in US dollars. In some countries, including India and Bangladesh,
-            the price you see at checkout already includes local tax; elsewhere tax is added at
-            checkout. Your bank or card provider may add its own currency-conversion fees.
+            Prices are charged in the currency shown at checkout: Indian rupees in India, and US
+            dollars in most other countries. Depending on your country, tax is either already
+            included in that price or added at checkout. If you pay in a currency other than your
+            card&rsquo;s, your bank may add its own conversion fees.
           </li>
         </List>
         <p>

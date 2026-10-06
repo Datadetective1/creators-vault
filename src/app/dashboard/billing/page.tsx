@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { ManageBillingButton } from "@/components/manage-billing-button";
+import { creatorPrice } from "@/components/pricing-section";
 import { PlanPicker } from "@/components/plan-picker";
 import { formatDate } from "@/lib/format";
 import { isPaddleConfigured, publicEnv } from "@/lib/env";
@@ -28,6 +29,8 @@ export default async function BillingPage({
   const supabase = await createClient();
   const [summary, { locale, t }] = await Promise.all([getVaultSummary(supabase, user), getI18n()]);
   const paddleReady = isPaddleConfigured();
+  // The Creator price as Paddle charges it in this visitor's country (₹399 in India).
+  const { priceLabel: creatorPriceLabel } = await creatorPrice(t, locale);
   const d = t.dashboard;
   const plan = t.pricing.plans[summary.plan.tier];
   const statusLabel: Record<string, string> = d.status;
@@ -93,6 +96,7 @@ export default async function BillingPage({
         environment={publicEnv.paddleEnvironment}
         paddleCustomerId={summary.paddleCustomerId}
         customerEmail={user.email ?? ""}
+        creatorPriceLabel={creatorPriceLabel}
       />
 
       {summary.hasPaddleSubscription && (

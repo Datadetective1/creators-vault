@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { errorResponse, requireUser } from "@/lib/api";
 import { isPaddleConfigured, priceIdFor } from "@/lib/paddle";
+import { visitorCountry } from "@/lib/paddle-pricing";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { ValidationError } from "@/lib/vault";
 import { checkoutRequestSchema } from "@/lib/validation";
@@ -51,6 +52,10 @@ export async function POST(request: NextRequest) {
       priceId,
       customerEmail: user.email,
       customData: { checkout_nonce: (data as { nonce: string }).nonce },
+      // Where Vercel places the visitor. Paddle uses it to open the checkout
+      // in that country's currency (INR in India) instead of guessing from
+      // the IP; the buyer can still change it.
+      countryCode: await visitorCountry(),
     });
   } catch (error) {
     return errorResponse(error);

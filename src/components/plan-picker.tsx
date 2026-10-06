@@ -98,6 +98,7 @@ export function PlanPicker({
       const body = (await response.json()) as {
         priceId?: string;
         customData?: Record<string, unknown>;
+        countryCode?: string | null;
         error?: string;
         code?: string;
       };
@@ -111,7 +112,12 @@ export function PlanPicker({
 
       paddle.Checkout.open({
         items: [{ priceId: body.priceId, quantity: 1 }],
-        customer: customerEmail ? { email: customerEmail } : undefined,
+        customer: customerEmail
+          ? {
+              email: customerEmail,
+              ...(body.countryCode ? { address: { countryCode: body.countryCode } } : {}),
+            }
+          : undefined,
         customData: body.customData,
         settings: {
           displayMode: "overlay",

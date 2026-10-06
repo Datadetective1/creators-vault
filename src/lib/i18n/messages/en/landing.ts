@@ -293,10 +293,10 @@ export const landing: LandingMessages = {
          * Facts only: Paddle is the Merchant of Record. India has a rupee price
          * (a Paddle unit_price_overrides entry on the live price); elsewhere
          * the price is US dollars. Payment methods are whatever Paddle Checkout
-         * offers in the buyer's country — do not claim a method is or is not
-         * available unless it has been checked in the live checkout.
+         * offers in the buyer's country. UPI and card were confirmed in the live India
+         * checkout on 6 Oct 2026; re-check before claiming any other method.
          */
-        a: `Payments are processed by Paddle, our Merchant of Record. In India the Creator plan is priced in Indian rupees with GST included; in most other countries it is billed in US dollars at ${PLANS.creator.priceLabel} a month. Checkout shows the payment methods available in your country, and either includes tax in the price or adds it before you pay, depending on where you live.`,
+        a: `Payments are processed by Paddle, our Merchant of Record. In India the Creator plan is priced in Indian rupees with GST included; in most other countries it is billed in US dollars at ${PLANS.creator.priceLabel} a month. In India you can pay by UPI or card. Checkout shows the payment methods available in your country, and either includes tax in the price or adds it before you pay, depending on where you live.`,
       },
     ],
   },

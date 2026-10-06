@@ -66,7 +66,7 @@ export const pricing = {
     price:
       "Creator is {price}. Paddle charges it in your local currency where one is set — Indian rupees in India, US dollars in most other countries. Depending on where you live, tax is either already included or calculated and shown at checkout before you pay.",
     paddle:
-      "Payments are processed by Paddle, our Merchant of Record. Checkout shows the payment methods available in your country. Creator renews monthly until you cancel.",
+      "Payments are processed by Paddle, our Merchant of Record. In India you can pay by UPI or card; checkout shows the methods available in your country. Creator renews monthly until you cancel.",
     cancel:
       "Cancel any time from your Plan page. You keep Creator until the end of the month you have paid for, then move to Free — your files are never deleted.",
     /** {refunds} and {terms} become links. */

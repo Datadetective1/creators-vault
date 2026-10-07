@@ -27,6 +27,10 @@ export interface LocalPrice {
 }
 
 const TTL_MS = 60 * 60 * 1000;
+/** A failed lookup is retried soon, so one Paddle blip does not pin the fallback for an hour. */
+const FAILURE_TTL_MS = 60 * 1000;
+/** Pages never wait longer than this for Paddle; past it they show the fallback price. */
+const PREVIEW_TIMEOUT_MS = 2000;
 const cache = new Map<string, { at: number; value: LocalPrice | null }>();
 
 export async function visitorCountry(): Promise<string | null> {
@@ -38,7 +42,7 @@ export async function getLocalCreatorPrice(country: string | null): Promise<Loca
   if (!country || !isPaddleConfigured()) return null;
 
   const hit = cache.get(country);
-  if (hit && Date.now() - hit.at < TTL_MS) return hit.value;
+  if (hit && Date.now() - hit.at < (hit.value ? TTL_MS : FAILURE_TTL_MS)) return hit.value;
 
   const value = await fetchPreview(country);
   cache.set(country, { at: Date.now(), value });
@@ -62,7 +66,7 @@ async function fetchPreview(country: string): Promise<LocalPrice | null> {
         items: [{ price_id: process.env.PADDLE_CREATOR_PRICE_ID, quantity: 1 }],
         address: { country_code: country },
       }),
-      signal: AbortSignal.timeout(3000),
+      signal: AbortSignal.timeout(PREVIEW_TIMEOUT_MS),
       cache: "no-store",
     });
     if (!response.ok) return null;

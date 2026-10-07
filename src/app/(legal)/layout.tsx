@@ -1,15 +1,15 @@
 import { SiteFooter } from "@/components/site-footer";
 import { SiteNav } from "@/components/site-nav";
 import { getI18n } from "@/lib/i18n/server";
-import { getCurrentUser } from "@/lib/supabase/server";
+import { hasSessionCookie } from "@/lib/supabase/server";
 
 export default async function LegalLayout({ children }: { children: React.ReactNode }) {
-  const user = await getCurrentUser();
+  const signedIn = await hasSessionCookie();
   const { locale, t } = await getI18n();
 
   return (
     <>
-      <SiteNav signedIn={Boolean(user)} />
+      <SiteNav signedIn={signedIn} />
       <main id="main" className="container-page pb-20 pt-28 sm:pt-32">
         {/* The documents themselves are English-only; say so in the reader's
             language before they start, rather than switching silently. */}

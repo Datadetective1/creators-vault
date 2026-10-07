@@ -12,11 +12,11 @@ import { SiteNav } from "@/components/site-nav";
 import type { LandingMessages } from "@/lib/i18n";
 import { getI18n } from "@/lib/i18n/server";
 import { CONTENT_WALL } from "@/lib/media";
-import { getCurrentUser } from "@/lib/supabase/server";
+import { hasSessionCookie } from "@/lib/supabase/server";
 
 export default async function HomePage() {
-  const [user, { t }] = await Promise.all([getCurrentUser(), getI18n()]);
-  const signedIn = Boolean(user);
+  // Cosmetic only (which CTA to show), so no auth-server call on the homepage.
+  const [signedIn, { t }] = await Promise.all([hasSessionCookie(), getI18n()]);
   const copy = t.landing;
 
   return (

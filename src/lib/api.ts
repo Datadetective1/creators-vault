@@ -5,6 +5,7 @@ import type { SupabaseClient, User } from "@supabase/supabase-js";
 
 import { isSupabaseConfigured } from "@/lib/env";
 import { createClient } from "@/lib/supabase/server";
+import { withTimeout } from "@/lib/timeout";
 import {
   AssetNotFoundError,
   ConsentRequiredError,
@@ -25,9 +26,12 @@ export async function requireUser(): Promise<{ supabase: SupabaseClient; user: U
   if (!isSupabaseConfigured()) throw new NotAuthenticatedError();
 
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // Bounded like getCurrentUser(): a slow auth server fails closed (401).
+  const user = await withTimeout(
+    supabase.auth.getUser().then(({ data }) => data.user),
+    3000,
+    null,
+  );
 
   if (!user) throw new NotAuthenticatedError();
   return { supabase, user };

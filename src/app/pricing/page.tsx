@@ -9,7 +9,7 @@ import { SiteNav } from "@/components/site-nav";
 import { fmt } from "@/lib/i18n";
 import { getI18n } from "@/lib/i18n/server";
 import { LEGAL } from "@/lib/legal";
-import { getCurrentUser } from "@/lib/supabase/server";
+import { hasSessionCookie } from "@/lib/supabase/server";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { locale, t } = await getI18n();
@@ -26,14 +26,14 @@ export async function generateMetadata(): Promise<Metadata> {
 const linkClass = "text-cream-300 underline underline-offset-2 hover:text-cream-50";
 
 export default async function PricingPage() {
-  const user = await getCurrentUser();
+  const signedIn = await hasSessionCookie();
   const { locale, t } = await getI18n();
   const copy = t.pricing.billing;
   const { priceLabel, pricePeriod } = await creatorPrice(t, locale);
 
   return (
     <>
-      <SiteNav signedIn={Boolean(user)} />
+      <SiteNav signedIn={signedIn} />
       <main id="main" className="pt-16 sm:pt-20">
         <PricingSection standalone />
 

@@ -4,7 +4,7 @@ import type { SupabaseClient, User } from "@supabase/supabase-js";
 
 import { ACTIVE_STORAGE_PROVIDER, getStorageProvider } from "@/lib/storage";
 import type { StorageProvider, UploadTarget } from "@/lib/storage";
-import { effectivePlan } from "@/lib/plans";
+import { canUpload, effectivePlan } from "@/lib/plans";
 import { checkFile, sanitizeFilename } from "@/lib/validation";
 import type { AssetRow, SubscriptionRow, VaultSummary } from "@/lib/types";
 
@@ -38,6 +38,14 @@ export class ValidationError extends Error {
   constructor(message: string) {
     super(message);
     this.name = "ValidationError";
+  }
+}
+
+/** The account has no active Creator subscription, so it has no storage to upload into. */
+export class SubscriptionRequiredError extends Error {
+  constructor() {
+    super("Uploading needs an active Creator subscription.");
+    this.name = "SubscriptionRequiredError";
   }
 }
 
@@ -109,6 +117,7 @@ export async function getVaultSummary(
     fileCount: usage.fileCount,
     limitBytes,
     percentUsed: limitBytes > 0 ? Math.min(100, (usage.usedBytes / limitBytes) * 100) : 0,
+    canUpload: canUpload(plan),
     hasPaddleSubscription: Boolean(subscription?.paddle_subscription_id),
     paddleCustomerId: subscription?.paddle_customer_id ?? null,
   };
@@ -172,6 +181,8 @@ export async function createUpload(
    * never reaches this function at all.
    */
   const summary = await getVaultSummary(supabase, user);
+  // No subscription, no storage. Checked before quota so the message is right.
+  if (!summary.canUpload) throw new SubscriptionRequiredError();
   if (summary.usedBytes + input.sizeBytes > summary.limitBytes) {
     const remaining = Math.max(0, summary.limitBytes - summary.usedBytes);
     throw new QuotaExceededError(
@@ -222,6 +233,11 @@ export async function finalizeUpload(
   }
 
   const summary = await getVaultSummary(supabase, user);
+
+  if (!summary.canUpload) {
+    await provider.remove([input.storageKey]);
+    throw new SubscriptionRequiredError();
+  }
 
   // The object is already stored, so an over-quota upload is rolled back rather
   // than recorded. The database enforces this too (migration 0004); this branch

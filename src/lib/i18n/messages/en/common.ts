@@ -49,7 +49,7 @@ export const common = {
     emailSupport: "Email support",
     reportSecurity: "Report a security issue",
     legal: "Legal",
-    operatedBy: "{product} is operated by {operator}. Early access pilot.",
+    rights: "All rights reserved.",
     privacyNote: "Your files stay private. We never publish or share what you upload.",
   },
   legalLinks: {

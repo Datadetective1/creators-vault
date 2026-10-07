@@ -13,6 +13,8 @@ export function apiErrorMessage(t: Messages, code: string | undefined, fallback:
       return t.common.errors.signedOut;
     case "consent_required":
       return t.consent.required;
+    case "subscription_required":
+      return t.dashboard.apiErrors.subscription_required;
     case "consent_stale":
       return t.consent.errors.stale;
     case "not_found":

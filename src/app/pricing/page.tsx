@@ -12,8 +12,8 @@ import { LEGAL } from "@/lib/legal";
 import { hasSessionCookie } from "@/lib/supabase/server";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const { locale, t } = await getI18n();
-  const { priceLabel, pricePeriod } = await creatorPrice(t, locale);
+  const { t } = await getI18n();
+  const { priceLabel, pricePeriod } = await creatorPrice(t);
   return {
     title: t.pricing.meta.title,
     description: fmt(t.pricing.meta.description, {
@@ -27,9 +27,9 @@ const linkClass = "text-cream-300 underline underline-offset-2 hover:text-cream-
 
 export default async function PricingPage() {
   const signedIn = await hasSessionCookie();
-  const { locale, t } = await getI18n();
+  const { t } = await getI18n();
   const copy = t.pricing.billing;
-  const { priceLabel, pricePeriod } = await creatorPrice(t, locale);
+  const { priceLabel, pricePeriod } = await creatorPrice(t);
 
   return (
     <>

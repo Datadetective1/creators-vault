@@ -12,6 +12,7 @@ import {
   NotAuthenticatedError,
   QuotaExceededError,
   StaleConsentError,
+  SubscriptionRequiredError,
   ValidationError,
 } from "@/lib/vault";
 
@@ -51,6 +52,9 @@ export function errorResponse(error: unknown): NextResponse {
   }
   if (error instanceof ConsentRequiredError) {
     return NextResponse.json({ error: error.message, code: "consent_required" }, { status: 403 });
+  }
+  if (error instanceof SubscriptionRequiredError) {
+    return NextResponse.json({ error: error.message, code: "subscription_required" }, { status: 403 });
   }
   if (error instanceof StaleConsentError) {
     return NextResponse.json({ error: error.message, code: "consent_stale" }, { status: 409 });

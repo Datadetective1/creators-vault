@@ -46,7 +46,7 @@ export const common: CommonMessages = {
     emailSupport: "সহায়তায় ইমেল করুন",
     reportSecurity: "নিরাপত্তা সমস্যা জানান",
     legal: "আইনি",
-    operatedBy: "{product} পরিচালনা করে {operator}। আর্লি অ্যাক্সেস পাইলট।",
+    rights: "সর্বস্বত্ব সংরক্ষিত।",
     privacyNote: "আপনার ফাইল ব্যক্তিগত থাকে। আপনি যা আপলোড করেন, আমরা তা কখনো প্রকাশ বা শেয়ার করি না।",
   },
   legalLinks: {

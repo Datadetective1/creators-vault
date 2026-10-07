@@ -18,7 +18,6 @@
 
 import { PRODUCT_NAME } from "@/lib/brand";
 import type { MediaKind } from "@/lib/media";
-import { PLANS } from "@/lib/plans";
 
 export interface LandingMessages {
   hero: {
@@ -285,7 +284,7 @@ export const landing: LandingMessages = {
       },
       {
         q: "What happens if I stop paying?",
-        a: "Your account moves back to the Free plan allowance. You keep access to your files and can still download them.",
+        a: "Your account and files stay. You can still view, download and delete them, but you can't upload new files until you subscribe again.",
       },
       {
         q: "How do I pay?",
@@ -296,7 +295,7 @@ export const landing: LandingMessages = {
          * offers in the buyer's country. UPI and card were confirmed in the live India
          * checkout on 6 Oct 2026; re-check before claiming any other method.
          */
-        a: `Payments are processed by Paddle, our Merchant of Record. In India the Creator plan is priced in Indian rupees with GST included; in most other countries it is billed in US dollars at ${PLANS.creator.priceLabel} a month. In India you can pay by UPI or card. Checkout shows the payment methods available in your country, and either includes tax in the price or adds it before you pay, depending on where you live.`,
+        a: "Payments are processed by Paddle, our Merchant of Record. Creator is ₹399 a month in India, including GST, and you can pay by UPI or card. Outside India, checkout may show the price in your local currency, with any tax that applies.",
       },
     ],
   },

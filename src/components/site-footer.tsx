@@ -2,7 +2,6 @@ import Link from "next/link";
 
 import { Logo, PRODUCT_NAME } from "@/components/brand";
 import { LanguageSelect } from "@/components/language-select";
-import { fmt } from "@/lib/i18n";
 import { getI18n } from "@/lib/i18n/server";
 import { LEGAL } from "@/lib/legal";
 
@@ -56,8 +55,7 @@ export async function SiteFooter() {
 
         <div className="mt-10 flex flex-col gap-3 border-t border-ink-800 pt-6 text-xs text-muted sm:flex-row sm:items-center sm:justify-between">
           <p>
-            &copy; {year} {LEGAL.operatorName}.{" "}
-            {fmt(f.operatedBy, { product: PRODUCT_NAME, operator: LEGAL.operatorName ?? "" })}
+            &copy; {year} {PRODUCT_NAME}. {f.rights}
           </p>
           <p>{f.privacyNote}</p>
         </div>

@@ -137,6 +137,18 @@ export async function grantConsent(userId: string, version?: string): Promise<vo
   if (insertError) throw new Error(`Could not record consent (${insertError.message}).`);
 }
 
+/**
+ * Give a test user an active Creator subscription, as the Paddle webhook would
+ * after a purchase. Service role only; no Paddle object is created.
+ */
+export async function grantSubscription(userId: string): Promise<void> {
+  const { error } = await admin()
+    .from("subscriptions")
+    .update({ plan: "creator", status: "active" })
+    .eq("user_id", userId);
+  if (error) throw new Error(`Could not grant a subscription (${error.message}).`);
+}
+
 /** The acceptance rows stored for a user. */
 export async function consentRowsFor(userId: string) {
   const { data, error } = await admin()

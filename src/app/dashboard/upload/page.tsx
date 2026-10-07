@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 
+import Link from "next/link";
+
 import { ConsentGate } from "@/components/consent-gate";
+import { creatorPrice } from "@/components/pricing-section";
 import { StorageMeter } from "@/components/storage-meter";
+import { fmt } from "@/lib/i18n";
 import { getI18n } from "@/lib/i18n/server";
 import { createClient, getCurrentUser } from "@/lib/supabase/server";
 import { getUploadConsentStatus, getVaultSummary } from "@/lib/vault";
@@ -42,7 +46,23 @@ export default async function UploadPage() {
         />
       </div>
 
-      <ConsentGate initial={consent} previouslyAccepted={(history.count ?? 0) > 0} />
+      {/* Uploading needs BOTH an active Creator subscription and current
+          acceptance of the Terms, Privacy Policy and upload-rights statement.
+          The server enforces each one independently (src/lib/vault.ts and
+          migrations 0011/0012); this only decides what to show. */}
+      {summary.canUpload ? (
+        <ConsentGate initial={consent} previouslyAccepted={(history.count ?? 0) > 0} />
+      ) : (
+        <section className="card border-gold-400/40" data-testid="subscription-required">
+          <h2 className="text-lg font-semibold text-cream-50">{t.dashboard.upload.subscribeTitle}</h2>
+          <p className="mt-1.5 text-sm leading-relaxed text-muted">
+            {fmt(t.dashboard.upload.subscribeBody, { price: (await creatorPrice(t)).priceLabel })}
+          </p>
+          <Link href="/dashboard/billing" className="btn-primary mt-5">
+            {t.dashboard.upload.subscribeCta}
+          </Link>
+        </section>
+      )}
     </div>
   );
 }

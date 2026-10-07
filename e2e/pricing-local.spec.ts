@@ -48,39 +48,27 @@ async function paddlePreview(country: string) {
   };
 }
 
-test.describe("price shown matches Paddle for the visitor's country", () => {
+test.describe("advertised price is Paddle's India price, for every visitor", () => {
   test.skip(!LOCAL || !configured, "Local server with Paddle configured only.");
 
-  for (const country of ["IN", "BD", "US"]) {
-    test(country, async ({ browser }) => {
-      const expected = await paddlePreview(country);
-      const context = await browser.newContext({ extraHTTPHeaders: { "x-vercel-ip-country": country } });
+  for (const country of ["IN", "BD", "US", null]) {
+    test(country ?? "no country", async ({ browser }) => {
+      // The figure comes from Paddle's preview for India, never a conversion.
+      const india = await paddlePreview("IN");
+      expect(india.currency).toBe("INR");
+      expect(india.totalMinor).toBe(39900);
+
+      const context = await browser.newContext(
+        country ? { extraHTTPHeaders: { "x-vercel-ip-country": country } } : {},
+      );
       const page = await context.newPage();
       await page.goto("/pricing");
-
-      // Paddle's own amount, shown without a ".00" on whole numbers.
-      const major = expected.totalMinor / 100;
-      const label = new Intl.NumberFormat(expected.currency === "INR" ? "en-IN" : "en-US", {
-        style: "currency",
-        currency: expected.currency,
-        minimumFractionDigits: Number.isInteger(major) ? 0 : 2,
-      }).format(major);
-      await expect(page.getByTestId("creator-price")).toHaveText(label);
-      if (country === "IN") {
-        // The India requirement: rupees from Paddle, never a USD figure.
-        expect(expected.currency).toBe("INR");
-        await expect(page.getByTestId("creator-price")).toHaveText("₹399");
-        await expect(page.locator("main")).not.toContainText("$4");
-      }
-      if (expected.taxCents > 0) {
-        await expect(page.getByTestId("creator-tax-note")).toContainText(expected.tax);
-      }
+      await expect(page.getByTestId("creator-price")).toHaveText("₹399");
+      await expect(page.getByTestId("creator-tax-note")).toContainText(
+        "Local currency may be shown at checkout outside India.",
+      );
+      await expect(page.locator("main")).not.toContainText("$4");
       await context.close();
     });
   }
-
-  test("no country: catalog price with the general tax note", async ({ page }) => {
-    await page.goto("/pricing");
-    await expect(page.getByTestId("creator-price")).toHaveText("$4");
-  });
 });

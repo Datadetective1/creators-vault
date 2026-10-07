@@ -8,6 +8,7 @@ import {
   createTestUser,
   deleteTestUser,
   deleteUsersByEmail,
+  grantSubscription,
   leftoversFor,
   type TestUser,
 } from "./support/supabase-admin";
@@ -118,13 +119,15 @@ test.describe("creator journey", () => {
       let creator: TestUser | undefined;
       try {
         creator = await createTestUser("creator");
+        // Uploading needs an active Creator subscription (one plan, no free storage).
+        await grantSubscription(creator.id);
 
         // --- log in and reach the dashboard -----------------------------------
         await logInThroughUi(page, creator);
         await expect(page.getByRole("heading", { name: /Welcome back/ })).toBeVisible();
 
-        // A brand-new account starts on Free with nothing stored.
-        await expect(page.getByText("Free", { exact: true }).first()).toBeVisible();
+        // A subscribed account with nothing stored yet.
+        await expect(page.getByText("Creator", { exact: true }).first()).toBeVisible();
 
         // --- upload -------------------------------------------------------------
         await page.goto("/dashboard");
@@ -177,6 +180,7 @@ test.describe("creator journey", () => {
 
       try {
         [owner, intruder] = await Promise.all([createTestUser("owner"), createTestUser("intruder")]);
+        await grantSubscription(owner.id);
 
         const ownerPage = await ownerContext.newPage();
         await logInThroughUi(ownerPage, owner);

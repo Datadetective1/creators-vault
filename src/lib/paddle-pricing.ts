@@ -33,6 +33,17 @@ const FAILURE_TTL_MS = 60 * 1000;
 const PREVIEW_TIMEOUT_MS = 2000;
 const cache = new Map<string, { at: number; value: LocalPrice | null }>();
 
+/**
+ * The ADVERTISED Creator price: Paddle's own figure for India (₹399 incl.
+ * GST), shown to every visitor wherever they are. Checkout then charges each
+ * buyer in the currency Paddle sets for their country.
+ */
+export const ADVERTISED_COUNTRY = "IN";
+
+export async function getAdvertisedCreatorPrice(): Promise<LocalPrice | null> {
+  return getLocalCreatorPrice(ADVERTISED_COUNTRY);
+}
+
 export async function visitorCountry(): Promise<string | null> {
   const country = (await headers()).get("x-vercel-ip-country");
   return country && /^[A-Z]{2}$/.test(country) ? country : null;

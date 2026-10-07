@@ -56,7 +56,7 @@ export default async function DashboardPage() {
         <StatCard
           label={d.overview.storageUsed}
           value={formatBytes(summary.usedBytes)}
-          sub={fmt(d.overview.ofTotal, { total: plan.storageLabel })}
+          sub={summary.canUpload ? fmt(d.overview.ofTotal, { total: plan.storageLabel }) : plan.storageLabel}
         />
       </div>
 
@@ -66,11 +66,11 @@ export default async function DashboardPage() {
           limitBytes={summary.limitBytes}
           percentUsed={summary.percentUsed}
         />
-        {summary.plan.tier === "free" && (
+        {!summary.canUpload && (
           <p className="mt-4 text-sm text-muted">
-            {d.overview.needMoreRoom}{" "}
+            {d.overview.noPlan}{" "}
             <Link href="/dashboard/billing" className="font-medium text-gold-400 hover:text-gold-300">
-              {d.overview.seePlans}
+              {d.overview.subscribe}
             </Link>
           </p>
         )}

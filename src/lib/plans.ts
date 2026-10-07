@@ -5,7 +5,14 @@
  * migration 0006. The database is the enforcement point; this copy exists so
  * the UI can render pricing without a round trip.
  *
- * PILOT MODEL: two tiers, free and creator. The 500 GB "pro" tier was retired —
+ * ONE CUSTOMER-FACING PLAN: Creator, 100 GB. `free` survives only as the
+ * internal tier for "no active subscription" — the value the webhook writes when
+ * a subscription ends — and it grants NO storage: such an account can sign in,
+ * view, download and delete what it already has, but cannot upload (enforced in
+ * src/lib/vault.ts and, for every path, by migration 0012). It is never sold or
+ * shown as a plan.
+ *
+ * History: the 500 GB "pro" tier was retired —
  * the pilot concept is a single paid tier at a flat price, so a third tier had
  * nothing to sell. Migration 0006 moves any row still on `pro` to `creator` and
  * deletes the plans row. The enum value itself is deliberately left in place
@@ -13,11 +20,9 @@
  * rewriting every dependent column), so `planFor` still has to answer for it —
  * see RETIRED_TIERS below.
  *
- * Pricing is pilot pricing and is NOT wired to billing. `priceLabel` is a
- * display string; the Paddle price id it would charge against lives in
- * PADDLE_CREATOR_PRICE_ID and is unset until Amary confirms the final price and
- * the product is created in Paddle. Until then `isPaddleConfigured()` is false
- * and checkout refuses with a 503.
+ * `priceLabel` is only the fallback display price. The advertised price is
+ * read from Paddle (src/lib/paddle-pricing.ts), so it cannot drift from what
+ * checkout charges.
  */
 
 export type PlanTier = "free" | "creator";
@@ -47,34 +52,30 @@ export interface PlanDefinition {
 }
 
 export const PLANS: Record<PlanTier, PlanDefinition> = {
+  /** No active subscription. Not a plan anyone buys; grants no storage. */
   free: {
     tier: "free",
-    name: "Free",
-    storageLimitBytes: 5 * GIB,
-    storageLabel: "5 GB",
-    priceLabel: "Free",
+    name: "No active plan",
+    storageLimitBytes: 0,
+    storageLabel: "",
+    priceLabel: "",
     pricePeriod: "",
-    tagline: "Try it with your most important files.",
-    features: [
-      "5 GB of private storage",
-      "Upload video, photos, audio and documents",
-      "Download anything, any time",
-      "Private by default",
-    ],
+    tagline: "",
+    features: [],
     paddlePriceEnv: null,
   },
   creator: {
     tier: "creator",
     name: "Creator",
     storageLimitBytes: 100 * GIB,
-    storageLabel: "Up to 100 GB",
-    priceLabel: "$4",
-    // The Paddle price is tax-exclusive, so checkout adds tax where it applies.
-    // Say so everywhere the price appears rather than surprising people there.
-    pricePeriod: "/month + applicable tax",
-    tagline: "20 GB or 100 GB — the price is the same.",
+    storageLabel: "100 GB",
+    // Fallback only: matches the India price configured in Paddle (₹399 incl.
+    // GST). The page shows Paddle's own figure whenever it can reach Paddle.
+    priceLabel: "₹399",
+    pricePeriod: "/month",
+    tagline: "100 GB of private storage.",
     features: [
-      "Up to 100 GB of private storage",
+      "100 GB of private storage",
       "Upload video, photos, audio and documents",
       "Download anything, any time",
       "Private by default",
@@ -83,7 +84,13 @@ export const PLANS: Record<PlanTier, PlanDefinition> = {
   },
 };
 
-export const PLAN_ORDER: PlanTier[] = ["free", "creator"];
+/** The plans offered to customers. */
+export const PLAN_ORDER: PlanTier[] = ["creator"];
+
+/** Whether this plan allows new uploads. Only an active Creator subscription does. */
+export function canUpload(plan: PlanDefinition): boolean {
+  return plan.tier === "creator";
+}
 
 /**
  * Tiers that existed once and may still appear in stored rows.

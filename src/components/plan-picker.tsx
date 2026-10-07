@@ -154,10 +154,9 @@ export function PlanPicker({
         </p>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="max-w-md">
         {PLAN_ORDER.map((tier) => {
-          const plan = PLANS[tier];
-          const copy = t.pricing.plans[tier];
+          const copy = t.pricing.plans.creator;
           const isCurrent = tier === currentTier;
 
           return (
@@ -180,38 +179,26 @@ export function PlanPicker({
 
               <p className="mt-3 flex flex-wrap items-baseline gap-x-0.5">
                 <span className="text-2xl font-semibold tracking-tight text-gold-400">
-                  {tier === "free"
-                    ? t.pricing.plans.free.priceLabel
-                    : (creatorPriceLabel ?? plan.priceLabel)}
+                  {creatorPriceLabel ?? PLANS.creator.priceLabel}
                 </span>
-                {tier === "creator" && (
-                  <span className="text-sm text-muted">{t.pricing.plans.creator.pricePeriod}</span>
-                )}
+                <span className="text-sm text-muted">{copy.pricePeriod}</span>
               </p>
-              <p className="text-sm text-cream-300">{copy.storageLabel}</p>
-              <p className="mt-1 text-sm text-muted">{copy.tagline}</p>
+              <p className="text-xs text-muted">{copy.taxNote}</p>
+              <p className="mt-2 text-sm text-cream-300">{copy.storageCaption}</p>
 
               <button
                 type="button"
                 onClick={() => choosePlan(tier)}
-                disabled={
-                  isCurrent ||
-                  tier === "free" ||
-                  !paddleReady ||
-                  !checkoutReady ||
-                  loadingTier !== null
-                }
+                disabled={isCurrent || !paddleReady || !checkoutReady || loadingTier !== null}
                 className={isCurrent ? "btn-secondary mt-5 w-full" : "btn-primary mt-5 w-full"}
               >
                 {isCurrent
                   ? d.planPicker.yourPlan
-                  : tier === "free"
-                    ? d.planPicker.included
-                    : loadingTier === tier
-                      ? d.planPicker.opening
-                      : paddleReady && !checkoutReady
-                        ? d.planPicker.loadingCheckout
-                        : fmt(d.planPicker.switchTo, { plan: copy.name })}
+                  : loadingTier === tier
+                    ? d.planPicker.opening
+                    : paddleReady && !checkoutReady
+                      ? d.planPicker.loadingCheckout
+                      : fmt(d.planPicker.switchTo, { plan: copy.name })}
               </button>
             </div>
           );

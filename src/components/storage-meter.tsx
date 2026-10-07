@@ -25,7 +25,9 @@ export function StorageMeter({
         <p className="text-sm text-muted">{d.label}</p>
         <p className="text-sm font-medium text-cream-50">
           {formatBytes(usedBytes)}{" "}
-          <span className="text-muted">{fmt(d.ofTotal, { total: formatBytes(limitBytes) })}</span>
+          <span className="text-muted">
+            {limitBytes > 0 ? fmt(d.ofTotal, { total: formatBytes(limitBytes) }) : `· ${d.noPlan}`}
+          </span>
         </p>
       </div>
 

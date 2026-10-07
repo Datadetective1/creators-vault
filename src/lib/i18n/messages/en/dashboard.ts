@@ -24,10 +24,10 @@ export const dashboard = {
     filesProtected: "Files protected",
     storageUsed: "Storage used",
     ofTotal: "of {total}",
-    needMoreRoom: "Need more room?",
-    seePlans: "See plans",
     recentFiles: "Recent files",
     viewAll: "View all",
+    noPlan: "You don't have an active plan. Subscribe to Creator to start uploading.",
+    subscribe: "See the Creator plan",
   },
   files: {
     empty: "Nothing here yet.",
@@ -36,32 +36,34 @@ export const dashboard = {
   },
   upload: {
     intro: "Files are private to your account. Nobody else can see or download them.",
+    subscribeTitle: "Subscribe to start uploading",
+    subscribeBody: "Uploads are part of the Creator plan: 100 GB of private storage for {price}/month. Your account is free to keep — you only pay to store files.",
+    subscribeCta: "See the Creator plan",
   },
   billing: {
     heading: "Your plan",
-    intro: "Choose how much storage you have.",
+    intro: "One plan: 100 GB of private storage for a monthly price.",
     checkoutComplete:
       "Payment received. Your plan updates as soon as Paddle confirms it — usually within a minute. Refresh this page to see it.",
     cancelScheduled:
-      "Cancelled — you keep {plan} until {date}, then move to {free}. You will not be charged again.",
+      "Cancelled — you keep {plan} until {date}. After that your files stay in your account, but you can't upload new ones unless you subscribe again. You will not be charged again.",
     renewsOn: "Renews on {date}.",
     accessEndsOn: "Access ends on {date}.",
     manageHeading: "Cancel or update payment",
     manageBody:
-      "Your subscription is managed by Paddle, our payment provider. Cancelling moves you back to the Free plan at the end of your billing period — your files stay in your account and remain downloadable.",
+      "Your subscription is managed by Paddle, our payment provider. If you cancel, your files stay in your account and remain downloadable, but uploading stops at the end of your billing period.",
     manageButton: "Manage or cancel subscription",
     opening: "Opening…",
     portalFailed: "Could not open billing.",
   },
   planPicker: {
     notEnabled:
-      "Paid plans are not switched on for this deployment yet. Your account works on the Free plan in the meantime.",
+      "Subscriptions are not switched on for this deployment yet.",
     current: "Current",
     yourPlan: "Your plan",
-    included: "Included",
     opening: "Opening…",
     loadingCheckout: "Loading checkout…",
-    switchTo: "Switch to {plan}",
+    switchTo: "Subscribe to {plan}",
     loadFailed: "Checkout could not be loaded. Please refresh and try again.",
     startFailed: "Could not start checkout.",
     stillLoading: "Checkout is still loading. Please try again in a moment.",
@@ -72,7 +74,8 @@ export const dashboard = {
   storage: {
     label: "Storage used",
     ofTotal: "of {total}",
-    nearLimit: "You are almost out of space. Upgrade your plan or delete files you no longer need.",
+    nearLimit: "You are almost out of space. Delete files you no longer need.",
+    noPlan: "No active plan",
   },
   table: {
     kinds: {
@@ -128,8 +131,9 @@ export const dashboard = {
   apiErrors: {
     not_found: "That file could not be found. Refresh the page and try again.",
     quota_exceeded:
-      "This upload would go over your plan's storage. Delete some files or upgrade your plan.",
+      "This upload would go over your 100 GB. Delete some files to make room.",
     invalid: "That request was not valid. Please check and try again.",
+    subscription_required: "Uploading needs an active Creator subscription.",
   },
 };
 

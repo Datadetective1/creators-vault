@@ -33,6 +33,13 @@ insert into public.legal_acceptances (user_id, consent_type, version)
 select u.id, d.consent_type, d.current_version
 from auth.users u cross join public.legal_documents d;
 
+-- Since 0012 an upload also needs an active Creator subscription. This suite
+-- measures the quota and isolation rules against the FREE tier's 5 GiB limit,
+-- so the subscription gate is switched off while it runs (re-enabled at the
+-- end). 0012_subscription.sql covers the gate itself.
+alter table storage.objects disable trigger vault_require_subscription;
+alter table public.assets disable trigger assets_require_subscription;
+
 -- B holds 2048 real bytes, so cross-user probes have something to find.
 insert into storage.objects (bucket_id, name, metadata)
 values ('vault', 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/b1.png', '{"size":2048,"mimetype":"image/png"}');
@@ -327,6 +334,9 @@ exception when others then
 end$$;
 
 -- ---------------------------------------------------------------------------
+alter table storage.objects enable trigger vault_require_subscription;
+alter table public.assets enable trigger assets_require_subscription;
+
 \echo ''
 \echo '================ 0007 REGRESSION RESULTS ================'
 select n, case when pass then 'PASS' else '*** FAIL ***' end as result, name, got from r order by n;

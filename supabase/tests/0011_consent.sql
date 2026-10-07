@@ -20,6 +20,13 @@ begin
     ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee', 'e@test.invalid', '{}');
 end$$;
 
+-- All three hold an active Creator subscription, so every failure below is
+-- the consent gate and not 0012's subscription gate.
+update public.subscriptions set plan = 'creator', status = 'active'
+ where user_id in ('cccccccc-cccc-4ccc-8ccc-cccccccccccc',
+                   'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
+                   'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee');
+
 -- 1. A new user is not accepted and cannot upload by any route
 do $$
 declare ok boolean;
@@ -80,7 +87,7 @@ begin
   set local role authenticated;
   set local request.jwt.claims = '{"sub":"cccccccc-cccc-4ccc-8ccc-cccccccccccc","role":"authenticated"}';
   insert into public.legal_acceptances (user_id, consent_type, version) values
-    ('cccccccc-cccc-4ccc-8ccc-cccccccccccc', 'terms', '2026-10-06');
+    ('cccccccc-cccc-4ccc-8ccc-cccccccccccc', 'terms', '2026-10-07');
   perform t('FORGE direct insert into legal_acceptances', 'refused', 'inserted', false);
 exception when others then
   perform t('FORGE direct insert into legal_acceptances', 'refused', sqlstate, sqlstate = '42501');
@@ -99,7 +106,7 @@ end$$;
 do $$
 begin
   set local role anon;
-  perform public.accept_legal_documents('2026-10-06', '2026-10-06', '2026-10-06');
+  perform public.accept_legal_documents('2026-10-07', '2026-10-06', '2026-10-06');
   perform t('ANON cannot accept', 'refused', 'accepted', false);
 exception when others then
   perform t('ANON cannot accept', 'refused', sqlstate, sqlstate = '42501');
@@ -111,8 +118,8 @@ declare ok boolean; n bigint;
 begin
   set local role authenticated;
   set local request.jwt.claims = '{"sub":"dddddddd-dddd-4ddd-8ddd-dddddddddddd","role":"authenticated"}';
-  perform public.accept_legal_documents('2026-10-06', '2026-10-06', '2026-10-06');
-  perform public.accept_legal_documents('2026-10-06', '2026-10-06', '2026-10-06'); -- idempotent
+  perform public.accept_legal_documents('2026-10-07', '2026-10-06', '2026-10-06');
+  perform public.accept_legal_documents('2026-10-07', '2026-10-06', '2026-10-06'); -- idempotent
   select accepted into ok from public.upload_consent_status();
   perform t('ACCEPT unlocks', 'true', ok::text, ok);
   select count(*) into n from public.legal_acceptances;
@@ -184,7 +191,7 @@ begin
   perform t('BUMP re-accepting the new version unlocks', 'true', ok::text, ok);
 end$$;
 
-update public.legal_documents set current_version = '2026-10-06' where consent_type = 'terms';
+update public.legal_documents set current_version = '2026-10-07' where consent_type = 'terms';
 
 -- 5. Existing files are untouched: the gate fires on INSERT only
 do $$

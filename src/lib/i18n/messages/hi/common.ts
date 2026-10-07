@@ -46,7 +46,7 @@ export const common: CommonMessages = {
     emailSupport: "सहायता को ईमेल करें",
     reportSecurity: "सुरक्षा से जुड़ी समस्या बताएँ",
     legal: "कानूनी",
-    operatedBy: "{product} का संचालन {operator} करती है। अर्ली ऐक्सेस पायलट।",
+    rights: "सर्वाधिकार सुरक्षित।",
     privacyNote: "आपकी फ़ाइलें निजी रहती हैं। आप जो अपलोड करते हैं, उसे हम कभी प्रकाशित या साझा नहीं करते।",
   },
   legalLinks: {

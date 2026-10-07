@@ -22,28 +22,33 @@ test("landing page shows the full story", async ({ page }) => {
     "The Solution",
     "Upload. Secure. Retrieve.",
     "All of this can live in your private library.",
-    "Start free. One simple paid plan.",
+    "One plan. 100 GB. ₹399/month.",
     "Questions creators ask first.",
   ]) {
     await expect(page.getByRole("heading", { name: heading })).toBeVisible();
   }
 
-  // Pilot pricing: exactly two tiers, Free and Creator.
-  await expect(page.getByText("5 GB", { exact: true }).first()).toBeVisible();
+  // One plan only: Creator, ₹399/month, 100 GB. No free storage tier.
   await expect(page.getByRole("heading", { name: "Creator", exact: true })).toBeVisible();
-  await expect(page.getByText("$4", { exact: true }).first()).toBeVisible();
+  await expect(page.getByTestId("creator-price")).toHaveText("₹399");
   await expect(page.getByText("/month", { exact: true }).first()).toBeVisible();
-  await expect(page.getByText("Up to 100 GB", { exact: false }).first()).toBeVisible();
+  await expect(page.getByText("Local currency may be shown at checkout outside India.").first()).toBeVisible();
+  await expect(page.getByText("100 GB of private storage").first()).toBeVisible();
+  const pricing = page.locator("#pricing");
+  await expect(pricing.getByText(/Start free|5 GB|\$4|20 GB/)).toHaveCount(0);
+  await expect(pricing.getByRole("heading", { name: "Free", exact: true })).toHaveCount(0);
 });
 
 test("/pricing is a real pricing page, linked from the nav and footer", async ({ page }) => {
   const response = await page.goto("/pricing");
   expect(response?.status()).toBe(200);
   await expect(page).toHaveURL(/\/pricing$/);
-  await expect(page.getByRole("heading", { level: 1, name: "Start free. One simple paid plan." })).toBeVisible();
-  await expect(page.getByText("$4", { exact: true }).first()).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "One plan. 100 GB. ₹399/month." })).toBeVisible();
+  await expect(page.getByTestId("creator-price")).toHaveText("₹399");
   await expect(page.getByText("/month", { exact: true }).first()).toBeVisible();
-  await expect(page.getByText("Up to 100 GB", { exact: false }).first()).toBeVisible();
+  await expect(page.getByText("100 GB of private storage").first()).toBeVisible();
+  await expect(page.locator("main")).not.toContainText("$4");
+  await expect(page.locator("main")).not.toContainText("Start free");
   await expect(page.getByRole("heading", { name: "How billing works" })).toBeVisible();
   await expect(page.locator("main a[href='/refunds']").first()).toBeVisible();
   await expect(page.locator("main a[href='/terms']").first()).toBeVisible();
@@ -91,9 +96,10 @@ test.describe("policies", () => {
     await expect(page.getByRole("link", { name: "paddle.net" })).toHaveAttribute("href", "https://paddle.net");
   });
 
-  test("the operating company is named, with its address only where legally relevant", async ({ page }) => {
+  test("Creator Lock is the public brand; the legal operator appears only on legal pages", async ({ page }) => {
     await page.goto("/");
-    await expect(page.locator("footer")).toContainText("MERIDIAN VERTEX LLC");
+    await expect(page.locator("footer")).toContainText("Creator Lock. All rights reserved.");
+    expect((await page.textContent("body")) ?? "").not.toMatch(/MERIDIAN VERTEX/i);
     expect((await page.textContent("body")) ?? "").not.toContain("MacArthur");
 
     for (const href of ["/terms", "/privacy"]) {

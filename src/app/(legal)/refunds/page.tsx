@@ -64,11 +64,9 @@ export default function RefundsPage() {
       <Section id="after" title="3. What happens to your account">
         <p>
           When we refund a payment, we also cancel the subscription it belongs to, so you are not
-          charged again, and your account moves to the Free plan. Your files are never deleted
-          because of a refund or cancellation. If you are
-          storing more than {LEGAL.freeStorage}, everything stays in your account and you can still
-          view, download and delete it — you just cannot upload more until you are back under the
-          Free limit.
+          charged again. Your account and files are never deleted because of a refund or
+          cancellation: you can still view, download and delete them, but you cannot upload
+          anything new until you subscribe again.
         </p>
       </Section>
 

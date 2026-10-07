@@ -29,8 +29,8 @@ export default async function BillingPage({
   const supabase = await createClient();
   const [summary, { locale, t }] = await Promise.all([getVaultSummary(supabase, user), getI18n()]);
   const paddleReady = isPaddleConfigured();
-  // The Creator price as Paddle charges it in this visitor's country (₹399 in India).
-  const { priceLabel: creatorPriceLabel } = await creatorPrice(t, locale);
+  // The advertised Creator price, from Paddle (₹399 incl. GST).
+  const { priceLabel: creatorPriceLabel } = await creatorPrice(t);
   const d = t.dashboard;
   const plan = t.pricing.plans[summary.plan.tier];
   const statusLabel: Record<string, string> = d.status;
@@ -58,10 +58,10 @@ export default async function BillingPage({
           <div>
             <p className="text-sm text-muted">{d.currentPlan}</p>
             <p className="mt-1 text-xl font-semibold text-cream-50">
-              {plan.name}{" "}
-              <span className="text-base font-normal text-muted">
-                &middot; {plan.storageLabel}
-              </span>
+              {plan.name}
+              {summary.canUpload && (
+                <span className="text-base font-normal text-muted"> &middot; {plan.storageLabel}</span>
+              )}
             </p>
           </div>
           <span className="rounded-full border border-ink-600 bg-ink-800 px-3 py-1 text-xs font-medium text-cream-300">
@@ -74,7 +74,6 @@ export default async function BillingPage({
             {fmt(d.billing.cancelScheduled, {
               plan: plan.name,
               date: formatDate(summary.scheduledCancelAt, locale),
-              free: t.pricing.plans.free.name,
             })}
           </p>
         ) : (

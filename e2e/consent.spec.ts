@@ -10,6 +10,7 @@ import {
   createTestUser,
   deleteTestUser,
   grantConsent,
+  grantSubscription,
   userClient,
   type TestUser,
 } from "./support/supabase-admin";
@@ -50,6 +51,7 @@ test.describe("upload consent gate", () => {
       let user: TestUser | undefined;
       try {
         user = await createTestUser(`consent-${locale}`);
+        await grantSubscription(user.id);
         await logIn(page, user);
         await useLocale(page, locale);
         await page.goto("/dashboard/upload");
@@ -125,6 +127,7 @@ test.describe("upload consent gate", () => {
     let user: TestUser | undefined;
     try {
       user = await createTestUser("consent-bypass");
+      await grantSubscription(user.id);
       await logIn(page, user);
 
       // App API: no upload target is minted, and finalize is refused.
@@ -210,6 +213,7 @@ test.describe("upload consent gate", () => {
     let user: TestUser | undefined;
     try {
       user = await createTestUser("consent-current");
+      await grantSubscription(user.id);
       await grantConsent(user.id);
       await logIn(page, user);
       await page.goto("/dashboard/upload");
@@ -224,6 +228,7 @@ test.describe("upload consent gate", () => {
     let user: TestUser | undefined;
     try {
       user = await createTestUser("consent-old");
+      await grantSubscription(user.id);
       await grantConsent(user.id, "2000-01-01");
       await logIn(page, user);
       await page.goto("/dashboard/upload");
@@ -245,10 +250,38 @@ test.describe("upload consent gate", () => {
     }
   });
 
+  test("an account without a Creator subscription cannot upload, even after accepting", async ({ page }) => {
+    let user: TestUser | undefined;
+    try {
+      user = await createTestUser("no-plan");
+      await grantConsent(user.id);
+      await logIn(page, user);
+      await page.goto("/dashboard/upload");
+      await expect(page.getByTestId("subscription-required")).toBeVisible();
+      await expect(page.locator('input[type="file"]')).toHaveCount(0);
+
+      const target = await page.request.post("/api/assets/upload-url", {
+        data: { filename: "a.txt", mimeType: "text/plain", sizeBytes: 5 },
+      });
+      expect(target.status()).toBe(403);
+      expect((await target.json()).code).toBe("subscription_required");
+
+      const client = await userClient(user);
+      const direct = await client.storage
+        .from("vault")
+        .upload(`${user.id}/direct.txt`, new Blob(["hello"], { type: "text/plain" }));
+      expect(direct.error).not.toBeNull();
+      expect((await client.storage.from("vault").list(user.id)).data ?? []).toHaveLength(0);
+    } finally {
+      await deleteTestUser(user);
+    }
+  });
+
   test("the database and the code agree on the current versions", async ({ page }) => {
     let user: TestUser | undefined;
     try {
       user = await createTestUser("consent-versions");
+      await grantSubscription(user.id);
       await logIn(page, user);
       const status = await (await page.request.get("/api/consent")).json();
       expect(status).toMatchObject({

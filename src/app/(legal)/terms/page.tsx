@@ -29,7 +29,7 @@ export default function TermsPage() {
         <p>
           {name} ({LEGAL.siteUrl}) is a product and service operated by <Operator />, a limited
           liability company registered in <Detail field="operatorJurisdiction" />. In these terms,
-          &ldquo;we&rdquo;, &ldquo;us&rdquo; and &ldquo;our&rdquo; mean <Operator />, and
+          &ldquo;we&rdquo;, &ldquo;us&rdquo; and &ldquo;our&rdquo; mean {name} and that company, and
           &ldquo;you&rdquo; means the person using {name}.
         </p>
         <p>
@@ -84,22 +84,20 @@ export default function TermsPage() {
         </List>
       </Section>
 
-      <Section id="plans" title="4. Plans, payment and renewal">
+      <Section id="plans" title="4. The Creator plan, payment and renewal">
         <List>
           <li>
-            <strong className="text-cream-50">Free</strong> includes {LEGAL.freeStorage} of storage
-            at no charge.
+            {name} has one plan, <strong className="text-cream-50">Creator</strong>: up to{" "}
+            {LEGAL.creatorStorage} of private storage for {LEGAL.creatorPrice}.
           </li>
           <li>
-            <strong className="text-cream-50">Creator</strong> includes up to{" "}
-            {LEGAL.creatorStorage} of storage for {LEGAL.creatorPrice} (in India, the rupee price
-            shown on our pricing page and at checkout). Any tax that applies where you live is
-            calculated and shown at checkout before you pay.
+            Creating an account is free, but storing files needs an active Creator subscription.
+            Without one you cannot upload.
           </li>
           <li>Individual files can be up to {LEGAL.maxFileSize}.</li>
           <li>
-            Prices are charged in the currency shown at checkout: Indian rupees in India, and US
-            dollars in most other countries. Depending on your country, tax is either already
+            Outside India, checkout may show the price in your local currency. You pay the
+            amount and currency shown at checkout. Depending on your country, tax is either already
             included in that price or added at checkout. If you pay in a currency other than your
             card&rsquo;s, your bank may add its own conversion fees.
           </li>
@@ -118,27 +116,27 @@ export default function TermsPage() {
         <p>
           Creator renews automatically every month on the same day, and Paddle charges the payment
           method you chose, until you cancel. If a renewal payment fails, Paddle may retry it; if
-          it cannot be collected, your account moves to the Free plan.
+          it cannot be collected, the subscription ends as described in section 5.
         </p>
         <p>
-          We may change the price of a paid plan. If we do, we will email you at least{" "}
+          We may change the price of the Creator plan. If we do, we will email you at least{" "}
           <Proposed term="priceChangeNoticeDays" /> before the new price applies to you, and you
           can cancel before then.
         </p>
       </Section>
 
-      <Section id="cancel" title="5. Cancelling and downgrading">
+      <Section id="cancel" title="5. Cancelling, and when a subscription ends">
         <p>
           You can cancel at any time from the <strong className="text-cream-50">Plan</strong> page
           using <strong className="text-cream-50">Manage or cancel subscription</strong>, or from
           any Paddle receipt email. You keep Creator until the end of the period you have already
-          paid for, then your account moves to Free. You will not be charged again.
+          paid for, and you will not be charged again.
         </p>
         <p>
-          Moving to Free never deletes your files. If you are storing more than{" "}
-          {LEGAL.freeStorage} when that happens, everything stays in your account and you can still
-          view, download and delete it — you just cannot upload more until you are back under the
-          Free limit or upgrade again.
+          When a subscription ends — because you cancelled, a refund was made, or a renewal could
+          not be collected — we do not delete your account or your files. You can still sign in
+          and view, download and delete what you stored, but you cannot upload anything new until
+          you subscribe again.
         </p>
         <p>
           Refunds are covered by our <Link href="/refunds" className="text-gold-400 underline-offset-4 hover:underline">Refund Policy</Link>.

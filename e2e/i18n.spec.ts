@@ -32,7 +32,7 @@ test("the language picker switches the page and the choice persists", async ({ p
   await expect(page.locator("html")).toHaveAttribute("lang", "bn");
   await page.goto("/pricing");
   await expect(page.locator("html")).toHaveAttribute("lang", "bn");
-  await expect(page.getByRole("heading", { level: 1, name: bn.pricing.heading })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: bn.pricing.heading.replace("{price}", "₹399") })).toBeVisible();
 
   await page.getByTestId("language-select").first().selectOption("en");
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
@@ -59,6 +59,11 @@ for (const locale of ["en", "hi", "bn"] as const) {
       expect(title, `${path} title in ${locale}`).not.toMatch(/vault/i);
       const alts = await page.locator("img[alt]").evaluateAll((imgs) => imgs.map((img) => img.getAttribute("alt") ?? ""));
       expect(alts.join(" "), `${path} alt text in ${locale}`).not.toMatch(/vault/i);
+      // One plan, own brand: no free tier, no old price, no operator name in the UI.
+      expect(text, `${path} legacy plan copy in ${locale}`).not.toMatch(/Start free|20 GB|\$4\b/);
+      if (!["/terms", "/privacy", "/refunds"].includes(path)) {
+        expect(text, `${path} operator name in ${locale}`).not.toMatch(/MERIDIAN VERTEX/i);
+      }
     }
 
     await page.goto("/");

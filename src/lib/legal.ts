@@ -17,14 +17,14 @@ import { PRODUCT_NAME } from "@/components/brand";
  * formatting do not need a bump. e2e/consent.spec.ts asserts these match the
  * database.
  */
-export const TERMS_VERSION = "2026-10-06";
+export const TERMS_VERSION = "2026-10-07";
 export const PRIVACY_VERSION = "2026-10-06";
 export const UPLOAD_RIGHTS_VERSION = "2026-10-06";
 
 export const LEGAL = {
   productName: PRODUCT_NAME,
   siteUrl: "https://www.creatorlock.app",
-  lastUpdated: "6 October 2026",
+  lastUpdated: "7 October 2026",
 
   /** The legal entity that operates Creator Lock and contracts with customers. */
   operatorName: "MERIDIAN VERTEX LLC" as string | null,
@@ -53,9 +53,8 @@ export const LEGAL = {
   governingLaw: "the laws of the State of Texas, United States" as string | null,
 
   /** Service facts, taken from the running configuration. */
-  freeStorage: "5 GB",
   creatorStorage: "100 GB",
-  creatorPrice: "US$4 per month",
+  creatorPrice: "₹399 per month in India, including GST",
   maxFileSize: "5 GB",
 } as const;
 

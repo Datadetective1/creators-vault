@@ -26,7 +26,7 @@ export const auth = {
   signup: {
     metaTitle: "Create your account",
     title: "Create your account",
-    subtitle: "Start free with 5 GB of private storage. No card required.",
+    subtitle: "Create your account, then subscribe to Creator for 100 GB of private storage.",
     submit: "Create my account",
     /** {terms} and {privacy} become links to the legal pages. */
     agreement: "By creating an account you agree to our {terms} and {privacy}.",

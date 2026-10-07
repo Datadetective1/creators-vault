@@ -38,6 +38,8 @@ export interface VaultSummary {
   fileCount: number;
   limitBytes: number;
   percentUsed: number;
+  /** True only with an active Creator subscription: the account may upload. */
+  canUpload: boolean;
   hasPaddleSubscription: boolean;
   /** Paddle customer id (ctm_…) once the user has checked out; used for Paddle Retain. */
   paddleCustomerId: string | null;
